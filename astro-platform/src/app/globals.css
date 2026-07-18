@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #0b0f1a;
+  --foreground: #e8edf5;
+  --card: #121829;
+  --card-border: #1e2a45;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --muted: #8892a8;
+  --success: #22c55e;
+  --warning: #f59e0b;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-5 shadow-lg;
+  }
+
+  .btn-primary {
+    @apply rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-indigo-500 disabled:opacity-50;
+  }
+
+  .btn-secondary {
+    @apply rounded-lg border border-[var(--card-border)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--foreground)] transition hover:bg-white/5;
+  }
+
+  .btn-danger {
+    @apply rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-sm text-red-400 transition hover:bg-red-500/20;
+  }
+
+  .input-field {
+    @apply w-full rounded-lg border border-[var(--card-border)] bg-[#0b1020] px-3 py-2 text-sm text-[var(--foreground)] outline-none focus:border-indigo-500;
+  }
+
+  .label {
+    @apply mb-1 block text-sm text-[var(--muted)];
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium;
+  }
+}
