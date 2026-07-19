@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Monitor, Settings2, Telescope, Trash2, Crosshair, Battery, Smartphone, Layers, Plus } from "lucide-react";
+import { Camera, Monitor, Settings2, Telescope, Trash2, Crosshair, Battery, Smartphone, Layers, Plus, Usb } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Modal from "@/components/Modal";
 import { Camera as CameraType, Mount, Telescope as TelescopeType } from "@/lib/types";
@@ -12,8 +12,9 @@ import {
   EquipmentPowerPanel,
   EquipmentRigPanel,
 } from "@/components/equipment/EquipmentDevicePanels";
+import UsbDevicePanel from "@/components/equipment/UsbDevicePanel";
 
-type Tab = "mounts" | "cameras" | "telescopes" | "guiders" | "software" | "rig" | "asiair" | "power" | "custom";
+type Tab = "mounts" | "cameras" | "telescopes" | "guiders" | "software" | "rig" | "asiair" | "power" | "custom" | "usb";
 
 interface Guider {
   id: number;
@@ -71,6 +72,7 @@ export default function EquipmentPage() {
   };
 
   const tabs = [
+    { id: "usb" as Tab, label: "USB", icon: Usb, count: 0 },
     { id: "rig" as Tab, label: "Active Rig", icon: Layers, count: 1 },
     { id: "power" as Tab, label: "Battery", icon: Battery, count: 0 },
     { id: "asiair" as Tab, label: "ASIAIR", icon: Smartphone, count: 0 },
@@ -129,6 +131,8 @@ export default function EquipmentPage() {
         <div className="text-[var(--muted)]">جاري التحميل...</div>
       ) : (
         <>
+          {tab === "usb" && <UsbDevicePanel />}
+
           {tab === "rig" && (
             <EquipmentRigPanel
               mounts={mounts}

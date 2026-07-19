@@ -8,7 +8,7 @@ import AsiairDeviceStrip from "@/components/asiair/AsiairDeviceStrip";
 import DeviceControlPanel from "@/components/equipment/DeviceControlPanel";
 import { DashboardStats, Session, AstroImage } from "@/lib/types";
 import { fetchJson } from "@/lib/utils";
-import { useDeviceStatus } from "@/hooks/useDeviceStatus";
+import { useMergedDeviceStatus } from "@/hooks/useMergedDeviceStatus";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -16,7 +16,7 @@ export default function DashboardPage() {
   const [recentImages, setRecentImages] = useState<AstroImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [imaging] = useState(false);
-  const { status: deviceStatus, loading: deviceLoading, refresh } = useDeviceStatus(5000);
+  const { status: deviceStatus, loading: deviceLoading, refresh } = useMergedDeviceStatus(5000);
 
   useEffect(() => {
     Promise.all([

@@ -68,6 +68,7 @@ function LoginForm() {
           <p className="mt-1 text-sm text-[var(--muted)]">
             منصة التصوير الفلكي — ASIAIR Style
           </p>
+          <p className="mt-1 text-[10px] text-[var(--zwo-orange)]">v1.0.0-trial — Windows USB</p>
         </div>
 
         {/* Login card */}

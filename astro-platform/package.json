@@ -1,10 +1,15 @@
 {
   "name": "astro-platform",
-  "version": "0.1.0",
+  "version": "1.0.0-trial",
   "private": true,
+  "description": "AstroLab ASIAIR-style platform v1.0.0-trial — Eng. Ahmed alfaisal",
   "scripts": {
     "dev": "next dev",
     "dev:clean": "rm -rf .next && next dev",
+    "dev:trial": "npm run bridge & npm run dev",
+    "bridge": "cd desktop-bridge && npm start",
+    "bridge:install": "cd desktop-bridge && npm install",
+    "install:trial": "npm install && npm run bridge:install",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
