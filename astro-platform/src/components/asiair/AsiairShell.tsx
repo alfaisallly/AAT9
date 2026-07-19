@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import AsiairTopBar from "./AsiairTopBar";
 import AsiairTabBar from "./AsiairTabBar";
+import CopyrightFooter from "@/components/CopyrightFooter";
 
 const sideNav = [
   { href: "/", label: "الرئيسية", icon: Home },
@@ -77,7 +78,7 @@ export default function AsiairShell({
             })}
           </nav>
 
-          <div className="border-t border-[var(--card-border)] p-4">
+          <div className="border-t border-[var(--card-border)] p-4 space-y-3">
             <div className="rounded-xl bg-[var(--card-elevated)] p-3">
               <div className="flex items-center gap-2">
                 <span className="status-dot status-dot-online" />
@@ -87,11 +88,17 @@ export default function AsiairShell({
                 EQ350 • ASI2600MM • ASIAIR Plus
               </p>
             </div>
+            <CopyrightFooter compact />
           </div>
         </aside>
 
-        <main className="min-w-0 flex-1 overflow-auto px-4 py-4 pb-20 lg:px-6 lg:py-5 lg:pb-5">
-          {children}
+        <main className="flex min-w-0 flex-1 flex-col">
+          <div className="flex-1 overflow-auto px-4 py-4 pb-20 lg:px-6 lg:py-5 lg:pb-5">
+            {children}
+          </div>
+          <footer className="hidden border-t border-[var(--card-border)] bg-[#0a0b0f] px-6 py-3 lg:block">
+            <CopyrightFooter />
+          </footer>
         </main>
       </div>
 

@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import AsiairShell from "@/components/asiair/AsiairShell";
+import AppLayout from "@/components/AppLayout";
 
 export const metadata: Metadata = {
-  title: "AstroLab — ASIAIR Style",
-  description: "منصة إدارة التصوير الفلكي — واجهة ASIAIR من ZWO",
+  title: "AstroLab — Eng. Ahmed alfaisal",
+  description:
+    "منصة إدارة التصوير الفلكي — تطوير Eng. Ahmed alfaisal — جميع الحقوق محفوظة",
+  authors: [{ name: "Ahmed alfaisal" }],
 };
 
 export default function RootLayout({
@@ -15,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className="min-h-screen antialiased">
-        <AsiairShell>{children}</AsiairShell>
+        <AppLayout>{children}</AppLayout>
       </body>
     </html>
   );
