@@ -1,13 +1,12 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState, Suspense } from "react";
 import { Lock, User, Telescope } from "lucide-react";
 import CopyrightFooter from "@/components/CopyrightFooter";
 import { fetchJson } from "@/lib/utils";
 
 function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const from = searchParams.get("from") || "/";
 
@@ -15,6 +14,12 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const fillCredentials = (user: string, pass: string) => {
+    setUsername(user);
+    setPassword(pass);
+    setError("");
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,8 +31,8 @@ function LoginForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      router.push(from);
-      router.refresh();
+      // Full navigation ensures the session cookie is applied before middleware runs.
+      window.location.assign(from);
     } catch (err) {
       setError(err instanceof Error ? err.message : "فشل تسجيل الدخول");
     } finally {
@@ -135,11 +140,25 @@ function LoginForm() {
               <p className="font-medium text-white">Eng. Ahmed alfaisal (مالك)</p>
               <p className="text-[var(--muted)]">المستخدم: <span className="text-white">ahmed.alfaisal</span></p>
               <p className="text-[var(--muted)]">كلمة المرور: <span className="text-white">AstroLab2026</span></p>
+              <button
+                type="button"
+                className="mt-2 text-[var(--zwo-orange)] underline-offset-2 hover:underline"
+                onClick={() => fillCredentials("ahmed.alfaisal", "AstroLab2026")}
+              >
+                تعبئة تلقائية
+              </button>
             </div>
             <div className="rounded-lg bg-black/20 px-3 py-2">
               <p className="font-medium text-white">مستخدم AstroLab</p>
               <p className="text-[var(--muted)]">المستخدم: <span className="text-white">astro</span></p>
               <p className="text-[var(--muted)]">كلمة المرور: <span className="text-white">Astro2026</span></p>
+              <button
+                type="button"
+                className="mt-2 text-[var(--zwo-orange)] underline-offset-2 hover:underline"
+                onClick={() => fillCredentials("astro", "Astro2026")}
+              >
+                تعبئة تلقائية
+              </button>
             </div>
           </div>
         </div>

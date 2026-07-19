@@ -32,10 +32,39 @@ export const mountTypeLabels: Record<string, string> = {
 };
 
 export async function fetchJson<T>(url: string, options?: RequestInit): Promise<T> {
-  const res = await fetch(url, options);
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({}));
-    throw new Error(err.error || "Request failed");
+  let res: Response;
+  try {
+    res = await fetch(url, {
+      credentials: "include",
+      ...options,
+    });
+  } catch {
+    throw new Error("تعذّر الاتصال بالخادم. تأكد أن الرابط يعمل وحاول مجدداً.");
   }
+
+  const contentType = res.headers.get("content-type") ?? "";
+  const isJson = contentType.includes("application/json");
+
+  if (!res.ok) {
+    if (isJson) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(
+        typeof err.error === "string" && err.error
+          ? err.error
+          : `فشل الطلب (${res.status})`
+      );
+    }
+
+    if (res.status === 503 || res.status === 502) {
+      throw new Error("الرابط العام غير متاح حالياً. اطلب رابطاً جديداً أو جرّب لاحقاً.");
+    }
+
+    throw new Error(`فشل الطلب (${res.status}). حاول مجدداً.`);
+  }
+
+  if (!isJson) {
+    throw new Error("استجابة غير متوقعة من الخادم. قد يكون الرابط منتهياً.");
+  }
+
   return res.json();
 }
