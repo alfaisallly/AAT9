@@ -69,7 +69,30 @@ scripts\start-trial-windows.bat
 
 ---
 
-## الإصدار
+## ملف Setup.exe (تثبيت واحد)
+
+| نظام | الملف |
+|------|-------|
+| Windows 64-bit | `AstroLab-1.0.0-trial-x64-Setup.exe` |
+| Windows 32-bit | `AstroLab-1.0.0-trial-ia32-Setup.exe` |
+
+### بناء ملف التثبيت
+
+```bat
+scripts\build-installer-windows.bat
+```
+
+أو حمّل من GitHub Actions → Artifacts
+
+### للمستخدم
+
+1. شغّل Setup.exe
+2. ثبّت → افتح AstroLab
+3. وصّل USB → Equipment → Scan
+
+**لا يحتاج Node.js بعد التثبيت**
+
+---
 
 **v1.0.0-trial** — قراءة USB/COM، ASIAIR simulation، إدارة Equipment
 

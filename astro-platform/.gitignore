@@ -16,6 +16,10 @@ desktop-bridge/node_modules
 
 # production
 /build
+/dist
+/dist-staging
+*.exe
+*.blockmap
 
 # misc
 .DS_Store

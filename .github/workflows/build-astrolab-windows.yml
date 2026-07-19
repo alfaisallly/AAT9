@@ -1,0 +1,77 @@
+name: Build AstroLab Windows Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cursor/windows-trial-v1-6241
+    paths:
+      - "astro-platform/**"
+      - ".github/workflows/build-astrolab-windows.yml"
+
+jobs:
+  build-x64:
+    name: Windows x64 Setup.exe
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: astro-platform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          npm run bridge:install
+
+      - name: Build app + x64 installer
+        shell: pwsh
+        run: |
+          npm run build
+          $env:TARGET_ARCH = "x64"
+          npm run prepare:standalone
+          npx electron-builder --win nsis --x64
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AstroLab-1.0.0-trial-x64-Setup
+          path: astro-platform/dist/AstroLab-*-x64-Setup.exe
+          if-no-files-found: error
+
+  build-ia32:
+    name: Windows x86 Setup.exe
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: astro-platform
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        shell: pwsh
+        run: |
+          npm ci
+          npm run bridge:install
+
+      - name: Build app + ia32 installer
+        shell: pwsh
+        run: |
+          npm run build
+          $env:TARGET_ARCH = "ia32"
+          npm run prepare:standalone
+          npx electron-builder --win nsis --ia32
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AstroLab-1.0.0-trial-ia32-Setup
+          path: astro-platform/dist/AstroLab-*-ia32-Setup.exe
+          if-no-files-found: error
