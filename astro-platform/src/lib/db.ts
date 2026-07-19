@@ -1,6 +1,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
+import { migrateAndSeed, getAllGuiders, getAllSoftware } from "@/lib/seed";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "astro.db");
@@ -16,7 +17,7 @@ function getDb(): Database.Database {
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     initSchema(db);
-    seedIfEmpty(db);
+    migrateAndSeed(db);
   }
   return db;
 }
@@ -110,261 +111,6 @@ function initSchema(database: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
-}
-
-function seedIfEmpty(database: Database.Database) {
-  const mountCount = database
-    .prepare("SELECT COUNT(*) as c FROM mounts")
-    .get() as { c: number };
-  if (mountCount.c > 0) return;
-
-  const insertMount = database.prepare(
-    "INSERT INTO mounts (name, brand, model, mount_type, max_payload_kg, notes) VALUES (?, ?, ?, ?, ?, ?)"
-  );
-  insertMount.run(
-    "Monte 1",
-    "Sky-Watcher",
-    "EQ6-R Pro",
-    "equatorial",
-    20,
-    "الحامل الرئيسي للتصوير العميق"
-  );
-  insertMount.run(
-    "Monte 2",
-    "ZWO",
-    "AM5",
-    "equatorial",
-    15,
-    "حامل خفيف للتصوير السريع"
-  );
-  insertMount.run(
-    "Monte 3",
-    "iOptron",
-    "CEM70",
-    "equatorial",
-    32,
-    "حامل ثقيل للتلسكopes الكبيرة"
-  );
-
-  const insertCamera = database.prepare(
-    "INSERT INTO cameras (name, brand, model, sensor_type, pixel_size_um, resolution, has_cooling, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-  );
-  insertCamera.run(
-    "كاميرا OSC",
-    "ZWO",
-    "ASI2600MC Pro",
-    "CMOS",
-    3.76,
-    "6248x4176",
-    1,
-    "كاميرا لون واحدة للتصوير العام"
-  );
-  insertCamera.run(
-    "كاميرا Mono",
-    "ZWO",
-    "ASI6200MM Pro",
-    "CMOS",
-    3.76,
-    "9576x6388",
-    1,
-    "كamera أحادية للتصوير بفلاتر ضيقة"
-  );
-  insertCamera.run(
-    "كاميرا Planetary",
-    "ZWO",
-    "ASI678MC",
-    "CMOS",
-    2.0,
-    "3840x2160",
-    0,
-    "لتصوير الكواكب والقمر"
-  );
-
-  const insertTelescope = database.prepare(
-    "INSERT INTO telescopes (name, brand, model, focal_length_mm, aperture_mm, telescope_type, notes) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  );
-  insertTelescope.run(
-    "Refractor APO",
-    "William Optics",
-    "GT81",
-    478,
-    81,
-    "refractor",
-    "عدسة APO للمجرات والسدم"
-  );
-  insertTelescope.run(
-    "Newtonian",
-    "Sky-Watcher",
-    "Quattro 200P",
-    800,
-    200,
-    "newtonian",
-    "نيوتن سريع للسدم"
-  );
-  insertTelescope.run(
-    "SCT",
-    "Celestron",
-    "C11 EdgeHD",
-    2800,
-    279,
-    "sct",
-    "تلسكوب مركب للكواكب والمجرات"
-  );
-
-  const insertFilter = database.prepare(
-    "INSERT INTO filters (name, filter_type, bandwidth_nm, notes) VALUES (?, ?, ?, ?)"
-  );
-  insertFilter.run("L-eXtreme", "narrowband", 7, "فلتر ضيق للسدم");
-  insertFilter.run("Ha 7nm", "narrowband", 7, "هيدروجين ألفا");
-  insertFilter.run("OIII 6.5nm", "narrowband", 6.5, "أكسجين ثلاثي");
-  insertFilter.run("SII 6.5nm", "narrowband", 6.5, "كبريت ثنائي");
-  insertFilter.run("L-Pro", "broadband", null, "فلتر ضوء عام");
-  insertFilter.run("UV/IR Cut", "broadband", null, "قطع UV/IR");
-
-  const insertTarget = database.prepare(
-    "INSERT INTO targets (name, designation, target_type, ra, dec, constellation, notes) VALUES (?, ?, ?, ?, ?, ?, ?)"
-  );
-  insertTarget.run(
-    "سديم Orion",
-    "M42",
-    "nebula",
-    "05h 35m 17s",
-    "-05° 23′ 28″",
-    "Orion",
-    "سديم Orion الرئيسي"
-  );
-  insertTarget.run(
-    "مجرة Andromeda",
-    "M31",
-    "galaxy",
-    "00h 42m 44s",
-    "+41° 16′ 09″",
-    "Andromeda",
-    "أقرب مجرة كبيرة"
-  );
-  insertTarget.run(
-    "سديم North America",
-    "NGC 7000",
-    "nebula",
-    "20h 59m 17s",
-    "+44° 31′ 44″",
-    "Cygnus",
-    "سديم أمريكا الشمالية"
-  );
-  insertTarget.run(
-    "كرة globular M13",
-    "M13",
-    "cluster",
-    "16h 41m 42s",
-    "+36° 27′ 37″",
-    "Hercules",
-    "كرة كروية في Hercules"
-  );
-
-  const insertSession = database.prepare(
-    "INSERT INTO sessions (name, session_date, location, mount_id, camera_id, telescope_id, weather, seeing, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  );
-  insertSession.run(
-    "ليلة Orion",
-    "2026-01-15",
-    "صحراء الرياض",
-    1,
-    1,
-    1,
-    "صافٍ",
-    "2/5",
-    "جلسة تصوير M42"
-  );
-  insertSession.run(
-    "Andromeda Widefield",
-    "2026-02-03",
-    "صحراء الرياض",
-    2,
-    2,
-    2,
-    "صافٍ جزئياً",
-    "3/5",
-    "M31 بفلاتر LRGB"
-  );
-
-  const insertImage = database.prepare(
-    "INSERT INTO images (session_id, target_id, filter_id, frame_type, filename, file_path, exposure_sec, gain, offset, temperature_c, date_taken, processed, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  );
-  insertImage.run(
-    1,
-    1,
-    5,
-    "light",
-    "M42_L_300s_001.fits",
-    "/data/sessions/2026-01-15/M42",
-    300,
-    100,
-    50,
-    -10,
-    "2026-01-15T21:30:00",
-    0,
-    "إطار L"
-  );
-  insertImage.run(
-    1,
-    1,
-    5,
-    "light",
-    "M42_L_300s_002.fits",
-    "/data/sessions/2026-01-15/M42",
-    300,
-    100,
-    50,
-    -10,
-    "2026-01-15T21:35:00",
-    0,
-    "إطار L"
-  );
-  insertImage.run(
-    1,
-    null,
-    null,
-    "dark",
-    "dark_300s_001.fits",
-    "/data/sessions/2026-01-15/calibration",
-    300,
-    100,
-    50,
-    -10,
-    "2026-01-15T22:00:00",
-    0,
-    "إطار dark"
-  );
-  insertImage.run(
-    1,
-    null,
-    null,
-    "flat",
-    "flat_L_001.fits",
-    "/data/sessions/2026-01-15/calibration",
-    1,
-    100,
-    50,
-    -10,
-    "2026-01-15T18:00:00",
-    0,
-    "إطار flat"
-  );
-  insertImage.run(
-    2,
-    2,
-    1,
-    "light",
-    "M31_LeXtreme_600s_001.fits",
-    "/data/sessions/2026-02-03/M31",
-    600,
-    120,
-    30,
-    -15,
-    "2026-02-03T23:00:00",
-    1,
-    "معالج"
-  );
 }
 
 export function getDashboardStats() {
@@ -527,6 +273,14 @@ export function deleteTelescope(id: number) {
 
 export function getAllFilters() {
   return getDb().prepare("SELECT * FROM filters ORDER BY name").all();
+}
+
+export function getGuiders() {
+  return getAllGuiders(getDb());
+}
+
+export function getSoftwareList() {
+  return getAllSoftware(getDb());
 }
 
 export function getAllTargets() {

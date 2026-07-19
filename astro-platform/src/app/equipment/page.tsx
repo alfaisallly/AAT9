@@ -1,19 +1,38 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Settings2, Telescope, Trash2 } from "lucide-react";
+import { Camera, Monitor, Settings2, Telescope, Trash2, Crosshair } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Modal from "@/components/Modal";
 import { Camera as CameraType, Mount, Telescope as TelescopeType } from "@/lib/types";
 import { fetchJson, mountTypeLabels } from "@/lib/utils";
 
-type Tab = "mounts" | "cameras" | "telescopes";
+type Tab = "mounts" | "cameras" | "telescopes" | "guiders" | "software";
+
+interface Guider {
+  id: number;
+  name: string;
+  brand: string;
+  model: string;
+  pixel_size_um: number | null;
+  resolution: string | null;
+  notes: string | null;
+}
+
+interface SoftwareItem {
+  id: number;
+  name: string;
+  category: string;
+  notes: string | null;
+}
 
 export default function EquipmentPage() {
   const [tab, setTab] = useState<Tab>("mounts");
   const [mounts, setMounts] = useState<Mount[]>([]);
   const [cameras, setCameras] = useState<CameraType[]>([]);
   const [telescopes, setTelescopes] = useState<TelescopeType[]>([]);
+  const [guiders, setGuiders] = useState<Guider[]>([]);
+  const [software, setSoftware] = useState<SoftwareItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -23,11 +42,15 @@ export default function EquipmentPage() {
       fetchJson<Mount[]>("/api/mounts"),
       fetchJson<CameraType[]>("/api/cameras"),
       fetchJson<TelescopeType[]>("/api/telescopes"),
+      fetchJson<Guider[]>("/api/guiders"),
+      fetchJson<SoftwareItem[]>("/api/software"),
     ])
-      .then(([m, c, t]) => {
+      .then(([m, c, t, g, s]) => {
         setMounts(m);
         setCameras(c);
         setTelescopes(t);
+        setGuiders(g);
+        setSoftware(s);
       })
       .finally(() => setLoading(false));
   };
@@ -49,6 +72,8 @@ export default function EquipmentPage() {
       icon: Telescope,
       count: telescopes.length,
     },
+    { id: "guiders" as Tab, label: "التوجيه", icon: Crosshair, count: guiders.length },
+    { id: "software" as Tab, label: "البرامج", icon: Monitor, count: software.length },
   ];
 
   return (
@@ -57,9 +82,11 @@ export default function EquipmentPage() {
         title="المعدات"
         description="إدارة حواملك وكاميراتك وتلسكopes الاحترافية"
         action={
+          ["mounts", "cameras", "telescopes"].includes(tab) ? (
           <button className="btn-primary" onClick={() => setModalOpen(true)}>
             + إضافة {tab === "mounts" ? "حامل" : tab === "cameras" ? "كamera" : "تلسكوب"}
           </button>
+          ) : undefined
         }
       />
 
@@ -211,18 +238,52 @@ export default function EquipmentPage() {
               ))}
             </div>
           )}
+
+          {tab === "guiders" && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {guiders.map((g) => (
+                <div key={g.id} className="card">
+                  <h3 className="font-semibold text-white">{g.name}</h3>
+                  <p className="text-sm text-[var(--muted)]">{g.brand} {g.model}</p>
+                  <div className="mt-2 space-y-1 text-sm">
+                    {g.resolution && <p>الدقة: {g.resolution}</p>}
+                    {g.pixel_size_um && <p>البكسل: {g.pixel_size_um} µm</p>}
+                    {g.notes && <p className="text-[var(--muted)]">{g.notes}</p>}
+                  </div>
+                </div>
+              ))}
+              <div className="card border-dashed">
+                <h3 className="font-semibold text-white">ZWO Mini Guide Scope 30mm</h3>
+                <p className="text-sm text-[var(--muted)]">120mm f/4 — OAG alternative</p>
+              </div>
+            </div>
+          )}
+
+          {tab === "software" && (
+            <div className="grid gap-4 md:grid-cols-2">
+              {software.map((s) => (
+                <div key={s.id} className="card">
+                  <h3 className="font-semibold text-white">{s.name}</h3>
+                  <span className="badge bg-indigo-500/20 text-indigo-300">{s.category}</span>
+                  <p className="mt-2 text-sm text-[var(--muted)]">{s.notes}</p>
+                </div>
+              ))}
+            </div>
+          )}
         </>
       )}
 
+      {["mounts", "cameras", "telescopes"].includes(tab) && (
       <EquipmentModal
         open={modalOpen}
         onClose={() => setModalOpen(false)}
-        tab={tab}
+        tab={tab as "mounts" | "cameras" | "telescopes"}
         onSaved={() => {
           setModalOpen(false);
           loadData();
         }}
       />
+      )}
     </div>
   );
 }
@@ -235,7 +296,7 @@ function EquipmentModal({
 }: {
   open: boolean;
   onClose: () => void;
-  tab: Tab;
+  tab: "mounts" | "cameras" | "telescopes";
   onSaved: () => void;
 }) {
   const [saving, setSaving] = useState(false);

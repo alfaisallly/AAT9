@@ -1,15 +1,49 @@
 # AstroLab — منصة إدارة التصوير الفلكي
 
-منصة ويب احترافية لإدارة صور التصوير الفلكي، مع دعم عدة حوامل وكاميرات وتلسكopes.
+منصة ويب احترافية مخصصة لمعداتك الفلكية، مع دليل مرجعي شامل و176 هدفاً سماوياً.
 
-## المميزات
+## معداتك المسجّلة
 
-- **إدارة المعدات**: حوامل (Mounts)، كاميرات، وتلسكopes
-- **جلسات المراقبة**: تسجيل ليالي المراقبة وربط المعدات المستخدمة
-- **مكتبة الصور**: إدارة إطارات Light / Dark / Flat / Bias مع بيانات التعريض
-- **الأهداف السماوية**: كatalog للمجرات والسدم والأهداف
-- **لوحة تحكم**: إحصائيات شاملة عن معداتك وصورك
-- **واجهة عربية**: دعم RTL كامل
+| النوع | المعدات |
+|--------|---------|
+| **حوامل** | Sky-Watcher EQ6-R Pro, EQ350 Pro |
+| **تلسكopes** | Askar V (V60/V80), SharpStar SCA260, Celestron C11, WO MiniCat 51, Acuter Phoenix H-alpha |
+| **كameras** | ZWO ASI2600MM Pro, ASI178MM, ASI678MM |
+| **توجيه** | ASI120MM Mini + ZWO Mini Guide Scope 30mm |
+| **فلاتر** | ZWO 7× Wheel, LRGB, Ha, OIII, SII, Antlia |
+| **برامج** | ASIAIR, PixInsight, AutoStakkert!, AstroSurface |
+
+## الأقسام
+
+| الصفحة | الوصف |
+|--------|-------|
+| `/` | لوحة التحكم |
+| `/equipment` | إدارة المعدات (حوامل، كameras، تلسكopes، توجيه، برامج) |
+| `/gallery` | معرض صور — واجهة شبيه ASIAIR/NINA |
+| `/guide` | **15 فصلاً** — دليل مرجعي احترافي |
+| `/quick-ref` | بطاقات سريعة للهاتف أثناء الرصد |
+| `/sky-map` | خريطة السماء الموسمية من العراق |
+| `/calculator` | Pixel Scale + FOV لكل تركيبة |
+| `/targets` | **176 هدفاً** مع توصيات كاملة |
+| `/checklist` | قوائم فحص قبل/بعد الجلسة |
+
+## الدليل المرجعي (15 فصلاً)
+
+1. جرد المعدات
+2. أفضل تركيبة لكل هدف
+3. إعدادات ASIAIR لكل تلسكوب
+4. إعدادات Guiding لكل بعد بؤري
+5. إعدادات كameras ZWO
+6. Pixel Scale / FOV (حاسبة تفاعلية)
+7. تصوير الشمس (Phoenix H-alpha)
+8. تصوير القمر
+9. تصوير الكواكب (C11)
+10. تصوير السدم (SHO/NB)
+11. تصوير المجرات (LRGB)
+12. المعالجة في PixInsight
+13. 176 هدفاً سماوياً
+14. حل مشاكل ASIAIR/Guiding
+15. قوائم الفحص
 
 ## التشغيل
 
@@ -19,40 +53,10 @@ npm install
 npm run dev
 ```
 
-افتح [http://localhost:3000](http://localhost:3000) في المتصفح.
+افتح http://localhost:3000
 
-## البنية التقنية
+## التقنيات
 
-- **Next.js 14** — إطار React مع App Router
-- **SQLite** — قاعدة بيانات محلية (better-sqlite3)
-- **Tailwind CSS** — تصميم داكن بموضوع فلكي
-- **TypeScript** — أنواع آمنة
-
-## API
-
-| Endpoint | الوصف |
-|----------|-------|
-| `GET /api/dashboard` | إحصائيات لوحة التحكم |
-| `GET/POST/DELETE /api/mounts` | إدارة الحوامل |
-| `GET/POST/DELETE /api/cameras` | إدارة الكاميرات |
-| `GET/POST/DELETE /api/telescopes` | إدارة التلسكopes |
-| `GET/POST/DELETE /api/sessions` | جلسات المراقبة |
-| `GET/POST/PATCH/DELETE /api/images` | مكتبة الصور |
-| `GET/POST/DELETE /api/targets` | الأهداف السماوية |
-| `GET /api/filters` | قائمة الفلاتر |
-
-## البيانات التجريبية
-
-عند أول تشغيل، تُنشأ قاعدة بيانات مع بيانات تجريبية:
-- 3 حوامل (EQ6-R, AM5, CEM70)
-- 3 كاميرات (ASI2600MC, ASI6200MM, ASI678MC)
-- 3 تلسكopes
-- جلسات وصور نموذجية
-
-## التطوير المستقبلي
-
-- رفع ملفات FITS/RAW فعلية
-- معاينة الصور
-- تكامل مع NINA / SGP / Ekos
-- تصدير بيانات FITS headers
-- دعم متعدد المستخدمين
+- Next.js 14 + TypeScript + Tailwind CSS
+- SQLite (better-sqlite3)
+- بيانات مرجعية: 176 هدف، 30 تركibة FOV، 15 فصل دليل
