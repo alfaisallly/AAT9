@@ -1,17 +1,17 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import PageHeader from "@/components/PageHeader";
+import { X } from "lucide-react";
 import { AstroImage, Session } from "@/lib/types";
-import { fetchJson, frameTypeColors, frameTypeLabels } from "@/lib/utils";
+import { fetchJson, frameTypeLabels } from "@/lib/utils";
 
-const typeGradients: Record<string, string> = {
-  light: "from-indigo-900 via-purple-900 to-blue-900",
-  dark: "from-gray-900 to-gray-800",
-  flat: "from-blue-900 to-cyan-900",
-  bias: "from-purple-900 to-pink-900",
-  other: "from-amber-900 to-orange-900",
-};
+const frameTabs = [
+  { id: "light", label: "Light", color: "text-[var(--zwo-orange)]" },
+  { id: "dark", label: "Dark", color: "text-gray-400" },
+  { id: "flat", label: "Flat", color: "text-cyan-400" },
+  { id: "bias", label: "Bias", color: "text-purple-400" },
+  { id: "", label: "All", color: "text-white" },
+];
 
 export default function GalleryPage() {
   const [images, setImages] = useState<AstroImage[]>([]);
@@ -19,7 +19,6 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<AstroImage | null>(null);
   const [frameFilter, setFrameFilter] = useState("light");
   const [sessionFilter, setSessionFilter] = useState("");
-  const [view, setView] = useState<"grid" | "list">("grid");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -44,206 +43,180 @@ export default function GalleryPage() {
       frames: images.length,
       lights: lights.length,
       totalMin: Math.round(totalExp / 60),
-      processed: images.filter((i) => i.processed).length,
     };
   }, [images]);
 
   return (
-    <div className="flex flex-col gap-4 lg:flex-row">
-      {/* Sidebar — NINA/ASIAIR style */}
-      <aside className="w-full shrink-0 space-y-4 lg:w-56">
-        <div className="card p-3">
-          <h3 className="mb-2 text-xs font-semibold uppercase text-[var(--muted)]">
-            نوع الإطار
-          </h3>
-          {["light", "dark", "flat", "bias", ""].map((f) => (
-            <button
-              key={f || "all"}
-              onClick={() => setFrameFilter(f)}
-              className={`mb-1 block w-full rounded px-2 py-1.5 text-right text-sm ${
-                frameFilter === f ? "bg-indigo-600/30 text-indigo-300" : "hover:bg-white/5"
-              }`}
-            >
-              {f ? frameTypeLabels[f] : "الكل"}
-            </button>
-          ))}
+    <div className="mx-auto max-w-6xl">
+      {/* ASIAIR Album header */}
+      <div className="mb-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white">Album</h1>
+          <p className="text-xs text-[var(--muted)]">
+            {stats.frames} frames • {stats.totalMin} min exposure
+          </p>
         </div>
-
-        <div className="card p-3">
-          <h3 className="mb-2 text-xs font-semibold uppercase text-[var(--muted)]">
-            الجلسات
-          </h3>
-          <button
-            onClick={() => setSessionFilter("")}
-            className={`mb-1 block w-full rounded px-2 py-1.5 text-right text-sm ${
-              !sessionFilter ? "bg-indigo-600/30 text-indigo-300" : "hover:bg-white/5"
-            }`}
-          >
-            كل الجلسات
-          </button>
-          {sessions.map((s) => (
-            <button
-              key={s.id}
-              onClick={() => setSessionFilter(String(s.id))}
-              className={`mb-1 block w-full rounded px-2 py-1.5 text-right text-sm ${
-                sessionFilter === String(s.id)
-                  ? "bg-indigo-600/30 text-indigo-300"
-                  : "hover:bg-white/5"
-              }`}
-            >
-              {s.name}
-            </button>
-          ))}
-        </div>
-      </aside>
-
-      {/* Main gallery */}
-      <div className="min-w-0 flex-1">
-        <PageHeader
-          title="معرض الصور"
-          description="واجهة عرض متكاملة — شبيه ASIAIR/NINA"
-          action={
-            <div className="flex gap-2">
-              <button
-                className={`btn-secondary ${view === "grid" ? "ring-1 ring-indigo-500" : ""}`}
-                onClick={() => setView("grid")}
-              >
-                شبكة
-              </button>
-              <button
-                className={`btn-secondary ${view === "list" ? "ring-1 ring-indigo-500" : ""}`}
-                onClick={() => setView("list")}
-              >
-                قائمة
-              </button>
-            </div>
-          }
-        />
-
-        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <div className="card py-3 text-center">
-            <p className="text-2xl font-bold text-white">{stats.frames}</p>
-            <p className="text-xs text-[var(--muted)]">إطارات</p>
-          </div>
-          <div className="card py-3 text-center">
-            <p className="text-2xl font-bold text-indigo-300">{stats.lights}</p>
-            <p className="text-xs text-[var(--muted)]">Light</p>
-          </div>
-          <div className="card py-3 text-center">
-            <p className="text-2xl font-bold text-green-300">{stats.totalMin}′</p>
-            <p className="text-xs text-[var(--muted)]">تعريض Light</p>
-          </div>
-          <div className="card py-3 text-center">
-            <p className="text-2xl font-bold text-amber-300">{stats.processed}</p>
-            <p className="text-xs text-[var(--muted)]">معالج</p>
-          </div>
-        </div>
-
-        {loading ? (
-          <p className="text-[var(--muted)]">جاري التحميل...</p>
-        ) : images.length === 0 ? (
-          <div className="card text-center text-[var(--muted)]">
-            لا توجد صور — أضف إطارات من جلسات المراقبة
-          </div>
-        ) : view === "grid" ? (
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {images.map((img) => (
-              <button
-                key={img.id}
-                onClick={() => setSelected(img)}
-                className={`overflow-hidden rounded-xl border text-right transition hover:border-indigo-500/50 ${
-                  selected?.id === img.id
-                    ? "border-indigo-500 ring-1 ring-indigo-500"
-                    : "border-[var(--card-border)]"
-                }`}
-              >
-                <div
-                  className={`flex h-32 items-center justify-center bg-gradient-to-br ${
-                    typeGradients[img.frame_type] || typeGradients.other
-                  }`}
-                >
-                  <div className="text-center">
-                    <p className="text-lg font-bold text-white/90">
-                      {img.target_name || img.frame_type.toUpperCase()}
-                    </p>
-                    <p className="text-xs text-white/60">{img.exposure_sec}s</p>
-                  </div>
-                </div>
-                <div className="bg-[var(--card)] p-3">
-                  <p className="truncate text-sm font-medium text-white">
-                    {img.filename}
-                  </p>
-                  <div className="mt-1 flex items-center justify-between">
-                    <span
-                      className={`badge ${frameTypeColors[img.frame_type]}`}
-                    >
-                      {frameTypeLabels[img.frame_type]}
-                    </span>
-                    <span
-                      className={`text-xs ${
-                        img.processed ? "text-green-400" : "text-yellow-400"
-                      }`}
-                    >
-                      {img.processed ? "✓" : "○"}
-                    </span>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {images.map((img) => (
-              <button
-                key={img.id}
-                onClick={() => setSelected(img)}
-                className="card flex w-full items-center justify-between text-right hover:border-indigo-500/30"
-              >
-                <div>
-                  <p className="font-medium text-white">{img.filename}</p>
-                  <p className="text-xs text-[var(--muted)]">
-                    {img.session_name} • {img.exposure_sec}s • G{img.gain}
-                  </p>
-                </div>
-                <span className={`badge ${frameTypeColors[img.frame_type]}`}>
-                  {frameTypeLabels[img.frame_type]}
-                </span>
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
-      {/* Detail panel */}
+      {/* Frame type tabs — ASIAIR pill tabs */}
+      <div className="mb-4 flex gap-1 overflow-x-auto rounded-xl bg-[var(--card)] p-1">
+        {frameTabs.map(({ id, label, color }) => (
+          <button
+            key={id || "all"}
+            onClick={() => setFrameFilter(id)}
+            className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium transition ${
+              frameFilter === id
+                ? "bg-[var(--zwo-orange)] text-white"
+                : `${color} hover:bg-white/5`
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {/* Session filter chips */}
+      <div className="mb-4 flex flex-wrap gap-2">
+        <button
+          onClick={() => setSessionFilter("")}
+          className={`rounded-full px-3 py-1 text-xs ${
+            !sessionFilter
+              ? "bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]"
+              : "bg-[var(--card)] text-[var(--muted)]"
+          }`}
+        >
+          All Sessions
+        </button>
+        {sessions.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setSessionFilter(String(s.id))}
+            className={`rounded-full px-3 py-1 text-xs ${
+              sessionFilter === String(s.id)
+                ? "bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]"
+                : "bg-[var(--card)] text-[var(--muted)]"
+            }`}
+          >
+            {s.name}
+          </button>
+        ))}
+      </div>
+
+      {loading ? (
+        <div className="flex h-40 items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--zwo-orange)] border-t-transparent" />
+        </div>
+      ) : images.length === 0 ? (
+        <div className="asiair-panel py-12 text-center text-[var(--muted)]">
+          No images in album
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+          {images.map((img) => (
+            <button
+              key={img.id}
+              onClick={() => setSelected(img)}
+              className={`group relative aspect-square overflow-hidden rounded-xl border transition ${
+                selected?.id === img.id
+                  ? "border-[var(--zwo-orange)] ring-2 ring-[var(--zwo-orange)]/30"
+                  : "border-[var(--card-border)] hover:border-[var(--zwo-orange)]/40"
+              }`}
+            >
+              <div className="absolute inset-0 bg-gradient-to-br from-[#1a0a2e] via-[#0d1526] to-black" />
+              {/* Star noise overlay */}
+              <div className="absolute inset-0 opacity-30">
+                {[...Array(8)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="absolute h-px w-px rounded-full bg-white"
+                    style={{
+                      top: `${15 + i * 10}%`,
+                      left: `${20 + i * 8}%`,
+                    }}
+                  />
+                ))}
+              </div>
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent p-2">
+                <p className="truncate text-[11px] font-semibold text-white">
+                  {img.target_name || img.filename}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] tabular-nums text-[var(--zwo-orange)]">
+                    {img.exposure_sec}s
+                  </span>
+                  <span className="text-[9px] text-[var(--muted)]">
+                    {frameTypeLabels[img.frame_type]}
+                  </span>
+                </div>
+              </div>
+              {img.processed ? (
+                <span className="absolute right-1.5 top-1.5 rounded bg-[var(--success)]/20 px-1 text-[9px] text-[var(--success)]">
+                  ✓
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Fullscreen detail — ASIAIR image info sheet */}
       {selected && (
-        <aside className="w-full shrink-0 lg:w-64">
-          <div className="card sticky top-4">
-            <h3 className="mb-3 font-semibold text-white">تفاصيل الإطار</h3>
-            <dl className="space-y-2 text-sm">
+        <div className="fixed inset-0 z-[70] flex flex-col bg-black/95 lg:hidden">
+          <div className="flex items-center justify-between p-4">
+            <button onClick={() => setSelected(null)}>
+              <X className="text-white" />
+            </button>
+            <span className="text-sm text-[var(--zwo-orange)]">Image Info</span>
+          </div>
+          <div className="preview-frame mx-4 aspect-video">
+            <div className="flex h-full items-center justify-center">
+              <p className="text-white">{selected.target_name || selected.filename}</p>
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <dl className="grid grid-cols-2 gap-3">
               {[
-                ["الملف", selected.filename],
-                ["الجلسة", selected.session_name],
-                ["الهدف", selected.target_name || "—"],
-                ["الفلتر", selected.filter_name || "—"],
-                ["التعريض", selected.exposure_sec ? `${selected.exposure_sec}s` : "—"],
-                ["Gain", selected.gain ?? "—"],
-                ["Offset", selected.offset ?? "—"],
-                ["الحرارة", selected.temperature_c ? `${selected.temperature_c}°C` : "—"],
-                ["المسار", selected.file_path || "—"],
+                ["File", selected.filename],
+                ["Exp", `${selected.exposure_sec}s`],
+                ["Gain", selected.gain],
+                ["Temp", `${selected.temperature_c}°C`],
+                ["Filter", selected.filter_name || "—"],
+                ["Target", selected.target_name || "—"],
               ].map(([k, v]) => (
-                <div key={k}>
-                  <dt className="text-[var(--muted)]">{k}</dt>
-                  <dd className="break-all text-white">{v}</dd>
+                <div key={k} className="asiair-panel">
+                  <dt className="asiair-stat-label">{k}</dt>
+                  <dd className="mt-1 text-sm font-medium text-white">{v}</dd>
                 </div>
               ))}
             </dl>
-            <button
-              className="btn-secondary mt-4 w-full"
-              onClick={() => setSelected(null)}
-            >
-              إغلاق
+          </div>
+        </div>
+      )}
+
+      {/* Desktop detail sidebar */}
+      {selected && (
+        <aside className="fixed bottom-24 left-4 right-4 z-50 hidden rounded-2xl border border-[var(--card-border)] bg-[var(--card)] p-4 lg:static lg:mt-4 lg:block">
+          <div className="flex items-start justify-between">
+            <h3 className="font-bold text-white">{selected.filename}</h3>
+            <button onClick={() => setSelected(null)} className="text-[var(--muted)]">
+              <X size={18} />
             </button>
           </div>
+          <dl className="mt-3 grid grid-cols-3 gap-3 text-sm">
+            {[
+              ["Exp", `${selected.exposure_sec}s`],
+              ["Gain", selected.gain],
+              ["Filter", selected.filter_name],
+              ["Target", selected.target_name],
+              ["Session", selected.session_name],
+              ["Type", frameTypeLabels[selected.frame_type]],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <dt className="asiair-stat-label">{k}</dt>
+                <dd className="text-white">{v || "—"}</dd>
+              </div>
+            ))}
+          </dl>
         </aside>
       )}
     </div>

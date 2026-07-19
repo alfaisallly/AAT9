@@ -79,8 +79,8 @@ export default function EquipmentPage() {
   return (
     <div>
       <PageHeader
-        title="المعدات"
-        description="إدارة حواملك وكاميراتك وتلسكopes الاحترافية"
+        title="Equipment"
+        description="Mount • Camera • Filter Wheel • Guide — ASIAIR Device Manager"
         action={
           ["mounts", "cameras", "telescopes"].includes(tab) ? (
           <button className="btn-primary" onClick={() => setModalOpen(true)}>
@@ -97,7 +97,7 @@ export default function EquipmentPage() {
             onClick={() => setTab(id)}
             className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm transition ${
               tab === id
-                ? "bg-indigo-600/20 text-indigo-300"
+                ? "bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]"
                 : "text-[var(--muted)] hover:bg-white/5"
             }`}
           >
@@ -188,7 +188,7 @@ export default function EquipmentPage() {
                       </p>
                     )}
                     <p>
-                      <span className="badge bg-indigo-500/20 text-indigo-300">
+                      <span className="badge bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]">
                         {camera.has_cooling ? "تبريد ❄️" : "بدون تبريد"}
                       </span>
                     </p>
@@ -264,7 +264,7 @@ export default function EquipmentPage() {
               {software.map((s) => (
                 <div key={s.id} className="card">
                   <h3 className="font-semibold text-white">{s.name}</h3>
-                  <span className="badge bg-indigo-500/20 text-indigo-300">{s.category}</span>
+                  <span className="badge bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]">{s.category}</span>
                   <p className="mt-2 text-sm text-[var(--muted)]">{s.notes}</p>
                 </div>
               ))}

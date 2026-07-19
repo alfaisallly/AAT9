@@ -1,8 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, MapPin, Trash2 } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
+import { Calendar, Layers, MapPin, Play, Trash2 } from "lucide-react";
 import Modal from "@/components/Modal";
 import {
   Camera as CameraType,
@@ -46,84 +45,97 @@ export default function SessionsPage() {
   };
 
   return (
-    <div>
-      <PageHeader
-        title="جلسات المراقبة"
-        description="سجّل ليالي المراقبة واربط المعدات المستخدمة"
-        action={
-          <button className="btn-primary" onClick={() => setModalOpen(true)}>
-            + جلسة جديدة
-          </button>
-        }
-      />
+    <div className="mx-auto max-w-4xl">
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <h1 className="text-xl font-bold text-white">Plan / Sequence</h1>
+          <p className="text-xs text-[var(--muted)]">جلسات التصوير والتسلسلات</p>
+        </div>
+        <button className="btn-primary flex items-center gap-2" onClick={() => setModalOpen(true)}>
+          <Layers size={16} />
+          Plan جديد
+        </button>
+      </div>
 
       {loading ? (
-        <div className="text-[var(--muted)]">جاري التحميل...</div>
+        <div className="flex h-32 items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-[var(--zwo-orange)] border-t-transparent" />
+        </div>
       ) : sessions.length === 0 ? (
-        <div className="card text-center text-[var(--muted)]">
-          لا توجد جلسات. أنشئ جلسة مراقبة جديدة للبدء.
+        <div className="asiair-panel py-12 text-center text-[var(--muted)]">
+          No plans yet — create your first sequence
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3">
           {sessions.map((session) => (
-            <div key={session.id} className="card">
-              <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                <div className="flex-1">
-                  <div className="mb-2 flex flex-wrap items-center gap-3">
-                    <h3 className="text-lg font-semibold text-white">
-                      {session.name}
-                    </h3>
-                    <span className="badge bg-indigo-500/20 text-indigo-300">
-                      {session.image_count ?? 0} صورة
-                    </span>
+            <div
+              key={session.id}
+              className="asiair-panel overflow-hidden"
+            >
+              <div className="flex items-stretch gap-4">
+                {/* ASIAIR sequence progress block */}
+                <div className="flex w-16 shrink-0 flex-col items-center justify-center border-l border-[var(--card-border)] bg-[var(--card-elevated)]">
+                  <div className="relative flex h-12 w-12 items-center justify-center">
+                    <svg className="h-12 w-12 -rotate-90" viewBox="0 0 36 36">
+                      <circle cx="18" cy="18" r="15" fill="none" stroke="#252a36" strokeWidth="2" />
+                      <circle
+                        cx="18" cy="18" r="15" fill="none"
+                        stroke="#ff6a00" strokeWidth="2"
+                        strokeDasharray={`${(session.image_count ?? 0) * 10} 100`}
+                      />
+                    </svg>
+                    <Play size={14} className="absolute text-[var(--zwo-orange)]" fill="currentColor" />
+                  </div>
+                </div>
+
+                <div className="min-w-0 flex-1 py-3 pl-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <h3 className="font-semibold text-white">{session.name}</h3>
+                      <div className="mt-1 flex flex-wrap gap-3 text-xs text-[var(--muted)]">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={12} />
+                          {session.session_date}
+                        </span>
+                        {session.location && (
+                          <span className="flex items-center gap-1">
+                            <MapPin size={12} />
+                            {session.location}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <button className="btn-danger shrink-0" onClick={() => handleDelete(session.id)}>
+                      <Trash2 size={14} />
+                    </button>
                   </div>
 
-                  <div className="mb-3 flex flex-wrap gap-4 text-sm text-[var(--muted)]">
-                    <span className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      {session.session_date}
-                    </span>
-                    {session.location && (
-                      <span className="flex items-center gap-1">
-                        <MapPin size={14} />
-                        {session.location}
-                      </span>
-                    )}
-                    {session.weather && <span>🌤 {session.weather}</span>}
-                    {session.seeing && <span>👁 رؤية: {session.seeing}</span>}
-                  </div>
-
-                  <div className="flex flex-wrap gap-3 text-sm">
+                  <div className="mt-3 flex flex-wrap gap-2">
                     {session.mount_name && (
-                      <span className="rounded-lg bg-white/5 px-3 py-1">
-                        🔄 {session.mount_name}
+                      <span className="rounded-lg bg-[var(--zwo-orange-dim)] px-2 py-1 text-[10px] text-[var(--zwo-orange)]">
+                        {session.mount_name}
                       </span>
                     )}
                     {session.camera_name && (
-                      <span className="rounded-lg bg-white/5 px-3 py-1">
-                        📷 {session.camera_name}
+                      <span className="rounded-lg bg-white/5 px-2 py-1 text-[10px] text-white">
+                        {session.camera_name}
                       </span>
                     )}
                     {session.telescope_name && (
-                      <span className="rounded-lg bg-white/5 px-3 py-1">
-                        🔭 {session.telescope_name}
+                      <span className="rounded-lg bg-white/5 px-2 py-1 text-[10px] text-cyan-300">
+                        {session.telescope_name}
                       </span>
                     )}
                   </div>
 
-                  {session.notes && (
-                    <p className="mt-3 text-sm text-[var(--muted)]">
-                      {session.notes}
-                    </p>
-                  )}
+                  <div className="mt-2 flex items-center gap-4 text-xs">
+                    <span className="text-[var(--zwo-orange)]">
+                      {session.image_count ?? 0} frames
+                    </span>
+                    {session.weather && <span>{session.weather}</span>}
+                    {session.seeing && <span>Seeing {session.seeing}</span>}
+                  </div>
                 </div>
-
-                <button
-                  className="btn-danger shrink-0"
-                  onClick={() => handleDelete(session.id)}
-                >
-                  <Trash2 size={14} />
-                </button>
               </div>
             </div>
           ))}
@@ -194,14 +206,14 @@ function SessionModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="جلسة مراقبة جديدة">
+    <Modal open={open} onClose={onClose} title="Plan جديد">
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="label">اسم الجلسة *</label>
+          <label className="label">اسم الخطة *</label>
           <input
             className="input-field"
             required
-            placeholder="مثال: ليلة Orion"
+            placeholder="M42 Ha Sequence"
             value={form.name || ""}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
@@ -215,16 +227,14 @@ function SessionModal({
               className="input-field"
               required
               value={form.session_date || ""}
-              onChange={(e) =>
-                setForm({ ...form, session_date: e.target.value })
-              }
+              onChange={(e) => setForm({ ...form, session_date: e.target.value })}
             />
           </div>
           <div>
             <label className="label">الموقع</label>
             <input
               className="input-field"
-              placeholder="موقع المراقبة"
+              placeholder="العراق"
               value={form.location || ""}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
             />
@@ -232,92 +242,50 @@ function SessionModal({
         </div>
 
         <div>
-          <label className="label">الحامل</label>
-          <select
-            className="input-field"
-            value={form.mount_id || ""}
-            onChange={(e) => setForm({ ...form, mount_id: e.target.value })}
-          >
-            <option value="">— اختر —</option>
+          <label className="label">Mount</label>
+          <select className="input-field" value={form.mount_id || ""} onChange={(e) => setForm({ ...form, mount_id: e.target.value })}>
+            <option value="">—</option>
             {mounts.map((m) => (
-              <option key={m.id} value={m.id}>
-                {m.name} ({m.brand} {m.model})
-              </option>
+              <option key={m.id} value={m.id}>{m.name}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label">الكاميرا</label>
-          <select
-            className="input-field"
-            value={form.camera_id || ""}
-            onChange={(e) => setForm({ ...form, camera_id: e.target.value })}
-          >
-            <option value="">— اختر —</option>
+          <label className="label">Camera</label>
+          <select className="input-field" value={form.camera_id || ""} onChange={(e) => setForm({ ...form, camera_id: e.target.value })}>
+            <option value="">—</option>
             {cameras.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name} ({c.brand} {c.model})
-              </option>
+              <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
         </div>
 
         <div>
-          <label className="label">التلسكوب</label>
-          <select
-            className="input-field"
-            value={form.telescope_id || ""}
-            onChange={(e) =>
-              setForm({ ...form, telescope_id: e.target.value })
-            }
-          >
-            <option value="">— اختر —</option>
+          <label className="label">Telescope</label>
+          <select className="input-field" value={form.telescope_id || ""} onChange={(e) => setForm({ ...form, telescope_id: e.target.value })}>
+            <option value="">—</option>
             {telescopes.map((t) => (
-              <option key={t.id} value={t.id}>
-                {t.name} ({t.brand} {t.model})
-              </option>
+              <option key={t.id} value={t.id}>{t.name}</option>
             ))}
           </select>
         </div>
 
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">الطقس</label>
-            <input
-              className="input-field"
-              placeholder="صافٍ / غائم"
-              value={form.weather || ""}
-              onChange={(e) => setForm({ ...form, weather: e.target.value })}
-            />
+            <label className="label">Weather</label>
+            <input className="input-field" value={form.weather || ""} onChange={(e) => setForm({ ...form, weather: e.target.value })} />
           </div>
           <div>
-            <label className="label">الرؤية (Seeing)</label>
-            <input
-              className="input-field"
-              placeholder="1/5 - 5/5"
-              value={form.seeing || ""}
-              onChange={(e) => setForm({ ...form, seeing: e.target.value })}
-            />
+            <label className="label">Seeing</label>
+            <input className="input-field" placeholder="2/5" value={form.seeing || ""} onChange={(e) => setForm({ ...form, seeing: e.target.value })} />
           </div>
-        </div>
-
-        <div>
-          <label className="label">ملاحظات</label>
-          <textarea
-            className="input-field"
-            rows={2}
-            value={form.notes || ""}
-            onChange={(e) => setForm({ ...form, notes: e.target.value })}
-          />
         </div>
 
         <div className="flex justify-end gap-3 pt-2">
-          <button type="button" className="btn-secondary" onClick={onClose}>
-            إلغاء
-          </button>
+          <button type="button" className="btn-secondary" onClick={onClose}>إلغاء</button>
           <button type="submit" className="btn-primary" disabled={saving}>
-            {saving ? "جاري الحفظ..." : "حفظ"}
+            {saving ? "..." : "Save Plan"}
           </button>
         </div>
       </form>

@@ -11,11 +11,7 @@ interface ModalProps {
 
 export default function Modal({ open, onClose, title, children }: ModalProps) {
   useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
+    document.body.style.overflow = open ? "hidden" : "";
     return () => {
       document.body.style.overflow = "";
     };
@@ -24,17 +20,17 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[60] flex items-end justify-center sm:items-center sm:p-4">
       <div
-        className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-lg rounded-xl border border-[var(--card-border)] bg-[var(--card)] p-6 shadow-2xl">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-white">{title}</h2>
+      <div className="relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-3xl border border-[var(--card-border)] bg-[var(--card)] p-5 shadow-2xl sm:max-w-lg sm:rounded-2xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-bold text-white">{title}</h2>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-[var(--muted)] hover:bg-white/5 hover:text-white"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--card-elevated)] text-[var(--muted)] hover:text-white"
           >
             ✕
           </button>

@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import Sidebar from "@/components/Sidebar";
+import AsiairShell from "@/components/asiair/AsiairShell";
 
 export const metadata: Metadata = {
-  title: "AstroLab — منصة إدارة التصوير الفلكي",
-  description:
-    "منصة احترافية لإدارة الصور الفلكية والحوامل والكاميرات وجلسات المراقبة",
+  title: "AstroLab — ASIAIR Style",
+  description: "منصة إدارة التصوير الفلكي — واجهة ASIAIR من ZWO",
 };
 
 export default function RootLayout({
@@ -16,10 +15,7 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className="min-h-screen antialiased">
-        <div className="flex min-h-screen">
-          <Sidebar />
-          <main className="flex-1 overflow-auto p-4 pb-20 lg:p-8 lg:pb-8">{children}</main>
-        </div>
+        <AsiairShell>{children}</AsiairShell>
       </body>
     </html>
   );

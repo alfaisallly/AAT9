@@ -3,15 +3,15 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
+  Aperture,
   Camera,
   Crosshair,
-  ImageIcon,
-  Moon,
-  Settings2,
+  Disc,
+  Pause,
+  Play,
   Telescope,
 } from "lucide-react";
-import PageHeader from "@/components/PageHeader";
-import StatCard from "@/components/StatCard";
+import AsiairDeviceCard from "@/components/asiair/AsiairDeviceCard";
 import { DashboardStats, Session, AstroImage } from "@/lib/types";
 import { fetchJson } from "@/lib/utils";
 
@@ -20,198 +20,240 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [recentImages, setRecentImages] = useState<AstroImage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imaging, setImaging] = useState(false);
 
   useEffect(() => {
     Promise.all([
       fetchJson<DashboardStats>("/api/dashboard"),
       fetchJson<Session[]>("/api/sessions"),
-      fetchJson<AstroImage[]>("/api/images"),
+      fetchJson<AstroImage[]>("/api/images?frame_type=light"),
     ])
       .then(([statsData, sessionsData, imagesData]) => {
         setStats(statsData);
-        setSessions(sessionsData.slice(0, 3));
-        setRecentImages(imagesData.slice(0, 5));
+        setSessions(sessionsData.slice(0, 2));
+        setRecentImages(imagesData.slice(0, 4));
       })
       .finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return (
-      <div className="flex h-64 items-center justify-center text-[var(--muted)]">
-        جاري التحميل...
+      <div className="flex h-64 items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--zwo-orange)] border-t-transparent" />
       </div>
     );
   }
 
   return (
-    <div>
-      <PageHeader
-        title="لوحة التحكم"
-        description="نظرة عامة على معداتك وجلساتك وصورك الفلكية"
-      />
+    <div className="mx-auto max-w-6xl space-y-4">
+      {/* Equipment row — ASIAIR device strip */}
+      <section>
+        <p className="label mb-2">Equipment</p>
+        <div className="flex gap-2 overflow-x-auto pb-1">
+          <AsiairDeviceCard
+            name="EQ350 Pro"
+            type="Mount"
+            detail="Parked"
+            icon={<Disc size={28} />}
+          />
+          <AsiairDeviceCard
+            name="ASI2600MM"
+            type="Main Cam"
+            detail="-10°C"
+            icon={<Camera size={28} />}
+          />
+          <AsiairDeviceCard
+            name="SCA260"
+            type="Scope"
+            detail="1664mm"
+            icon={<Telescope size={28} />}
+          />
+          <AsiairDeviceCard
+            name="7× Wheel"
+            type="Filter"
+            detail="Ha"
+            icon={<Aperture size={28} />}
+          />
+          <AsiairDeviceCard
+            name="ASI120MM"
+            type="Guide"
+            detail="RMS 0.4″"
+            icon={<Crosshair size={28} />}
+          />
+        </div>
+      </section>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="الحوامل"
-          value={stats?.mounts ?? 0}
-          icon={Settings2}
-          color="text-blue-400"
-        />
-        <StatCard
-          title="الكاميرات"
-          value={stats?.cameras ?? 0}
-          icon={Camera}
-          color="text-purple-400"
-        />
-        <StatCard
-          title="التلسكopes"
-          value={stats?.telescopes ?? 0}
-          icon={Telescope}
-          color="text-cyan-400"
-        />
-        <StatCard
-          title="الأهداف"
-          value={stats?.targets ?? 0}
-          icon={Crosshair}
-          color="text-amber-400"
-        />
-      </div>
+      <div className="grid gap-4 lg:grid-cols-5">
+        {/* Live preview — ASIAIR main view */}
+        <div className="preview-frame lg:col-span-3">
+          <div className="flex aspect-video flex-col justify-between p-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-xs text-[var(--muted)]">Target</p>
+                <p className="text-lg font-bold text-white">
+                  {recentImages[0]?.target_name || "M42 — Orion Nebula"}
+                </p>
+              </div>
+              <span
+                className={`badge ${imaging ? "bg-[var(--zwo-orange-dim)] text-[var(--zwo-orange)]" : "bg-white/10 text-[var(--muted)]"}`}
+              >
+                {imaging ? "● REC" : "IDLE"}
+              </span>
+            </div>
 
-      <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          title="جلسات المراقبة"
-          value={stats?.sessions ?? 0}
-          icon={Moon}
-          color="text-indigo-400"
-        />
-        <StatCard
-          title="إجمالي الصور"
-          value={stats?.images ?? 0}
-          icon={ImageIcon}
-          color="text-green-400"
-        />
-        <StatCard
-          title="إطارات Light"
-          value={stats?.lightFrames ?? 0}
-          icon={ImageIcon}
-          color="text-emerald-400"
-        />
-        <StatCard
-          title="إطارات المعايرة"
-          value={stats?.calibrationFrames ?? 0}
-          icon={ImageIcon}
-          color="text-orange-400"
-        />
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-white">آخر جلسات المراقبة</h2>
-            <Link
-              href="/sessions"
-              className="text-sm text-indigo-400 hover:text-indigo-300"
-            >
-              عرض الكل
-            </Link>
-          </div>
-          {sessions.length === 0 ? (
-            <p className="text-sm text-[var(--muted)]">لا توجد جلسات بعد</p>
-          ) : (
-            <div className="space-y-3">
-              {sessions.map((session) => (
+            {/* Simulated star field dots */}
+            <div className="pointer-events-none absolute inset-0 opacity-40">
+              {[...Array(20)].map((_, i) => (
                 <div
-                  key={session.id}
-                  className="rounded-lg border border-[var(--card-border)] bg-[#0b1020] p-3"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-white">{session.name}</span>
-                    <span className="text-xs text-[var(--muted)]">
-                      {session.session_date}
-                    </span>
-                  </div>
-                  <div className="mt-1 flex flex-wrap gap-2 text-xs text-[var(--muted)]">
-                    {session.mount_name && <span>🔄 {session.mount_name}</span>}
-                    {session.camera_name && (
-                      <span>📷 {session.camera_name}</span>
-                    )}
-                    {session.image_count !== undefined && (
-                      <span>🖼 {session.image_count} صورة</span>
-                    )}
-                  </div>
-                </div>
+                  key={i}
+                  className="absolute h-0.5 w-0.5 rounded-full bg-white"
+                  style={{
+                    top: `${10 + ((i * 17) % 80)}%`,
+                    left: `${5 + ((i * 23) % 90)}%`,
+                    opacity: 0.3 + (i % 5) * 0.15,
+                  }}
+                />
               ))}
             </div>
-          )}
+
+            <div className="relative z-10 grid grid-cols-4 gap-2 rounded-xl bg-black/50 p-3 backdrop-blur-sm">
+              <div>
+                <p className="asiair-stat-label">Exp</p>
+                <p className="asiair-stat-value text-lg">300s</p>
+              </div>
+              <div>
+                <p className="asiair-stat-label">Gain</p>
+                <p className="asiair-stat-value text-lg">100</p>
+              </div>
+              <div>
+                <p className="asiair-stat-label">Temp</p>
+                <p className="asiair-stat-value text-lg text-cyan-400">-10°</p>
+              </div>
+              <div>
+                <p className="asiair-stat-label">Filter</p>
+                <p className="asiair-stat-value text-lg text-[var(--zwo-orange)]">Ha</p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <div className="card">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="font-semibold text-white">آخر الصور</h2>
-            <Link
-              href="/images"
-              className="text-sm text-indigo-400 hover:text-indigo-300"
-            >
-              عرض الكل
-            </Link>
+        {/* Control panel — ASIAIR right side */}
+        <div className="flex flex-col gap-3 lg:col-span-2">
+          <div className="asiair-panel flex flex-1 flex-col items-center justify-center gap-4 py-6">
+            <p className="text-xs text-[var(--muted)]">Sequence Control</p>
+            <div className="flex items-center gap-6">
+              {!imaging ? (
+                <button
+                  className="btn-asiair-round"
+                  onClick={() => setImaging(true)}
+                  aria-label="Start"
+                >
+                  <Play size={28} fill="white" className="mr-[-2px]" />
+                </button>
+              ) : (
+                <button
+                  className="btn-asiair-stop"
+                  onClick={() => setImaging(false)}
+                  aria-label="Stop"
+                >
+                  <Pause size={28} fill="white" />
+                </button>
+              )}
+            </div>
+            <p className="text-sm text-white">
+              {imaging ? "جاري التصوير..." : "جاهز للبدء"}
+            </p>
+
+            {/* Progress ring style */}
+            <div className="w-full px-4">
+              <div className="mb-1 flex justify-between text-[10px] text-[var(--muted)]">
+                <span>Frame 12 / 30</span>
+                <span>40%</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-[var(--card-border)]">
+                <div
+                  className="h-full rounded-full bg-gradient-to-l from-[var(--zwo-orange)] to-orange-400 transition-all"
+                  style={{ width: imaging ? "40%" : "0%" }}
+                />
+              </div>
+            </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            {[
+              { label: "Lights", value: stats?.lightFrames ?? 0, color: "text-[var(--zwo-orange)]" },
+              { label: "Sessions", value: stats?.sessions ?? 0, color: "text-white" },
+              { label: "Targets", value: stats?.targets ?? 0, color: "text-cyan-400" },
+              { label: "Scopes", value: stats?.telescopes ?? 0, color: "text-white" },
+            ].map(({ label, value, color }) => (
+              <div key={label} className="asiair-panel text-center">
+                <p className="asiair-stat-label">{label}</p>
+                <p className={`asiair-stat-value ${color}`}>{value}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Album strip — ASIAIR bottom gallery preview */}
+      <section className="asiair-panel">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-semibold text-white">Album</p>
+          <Link href="/gallery" className="text-xs text-[var(--zwo-orange)]">
+            عرض الكل →
+          </Link>
+        </div>
+        <div className="flex gap-2 overflow-x-auto">
           {recentImages.length === 0 ? (
             <p className="text-sm text-[var(--muted)]">لا توجد صور بعد</p>
           ) : (
-            <div className="space-y-2">
-              {recentImages.map((img) => (
-                <div
-                  key={img.id}
-                  className="flex items-center justify-between rounded-lg border border-[var(--card-border)] bg-[#0b1020] px-3 py-2"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-white">
-                      {img.filename}
-                    </p>
-                    <p className="text-xs text-[var(--muted)]">
-                      {img.target_name || img.session_name} • {img.exposure_sec}
-                      s
-                    </p>
-                  </div>
-                  <span
-                    className={`badge ${
-                      img.processed
-                        ? "bg-green-500/20 text-green-400"
-                        : "bg-yellow-500/20 text-yellow-400"
-                    }`}
-                  >
-                    {img.processed ? "معالج" : "خام"}
-                  </span>
+            recentImages.map((img) => (
+              <Link
+                key={img.id}
+                href="/gallery"
+                className="group relative h-20 w-28 shrink-0 overflow-hidden rounded-xl border border-[var(--card-border)] bg-black"
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-indigo-950 via-purple-950 to-black opacity-90" />
+                <div className="relative flex h-full flex-col justify-end p-2">
+                  <p className="truncate text-[10px] font-medium text-white">
+                    {img.target_name || img.filename}
+                  </p>
+                  <p className="text-[9px] text-[var(--muted)]">
+                    {img.exposure_sec}s
+                  </p>
                 </div>
-              ))}
-            </div>
+              </Link>
+            ))
           )}
         </div>
-      </div>
+      </section>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-3">
-        <Link href="/equipment" className="card transition hover:border-indigo-500/50">
-          <Settings2 className="mb-2 text-indigo-400" size={24} />
-          <h3 className="font-semibold text-white">إدارة المعدات</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            أضف وعدّل حواملك وكاميراتك وتلسكopes
-          </p>
-        </Link>
-        <Link href="/sessions" className="card transition hover:border-indigo-500/50">
-          <Moon className="mb-2 text-indigo-400" size={24} />
-          <h3 className="font-semibold text-white">جلسة جديدة</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            سجّل ليلة مراقبة جديدة واربط المعدات
-          </p>
-        </Link>
-        <Link href="/images" className="card transition hover:border-indigo-500/50">
-          <ImageIcon className="mb-2 text-indigo-400" size={24} />
-          <h3 className="font-semibold text-white">إضافة صور</h3>
-          <p className="mt-1 text-sm text-[var(--muted)]">
-            سجّل إطارات Light و Dark و Flat
-          </p>
-        </Link>
-      </div>
+      {/* Active sessions */}
+      {sessions.length > 0 && (
+        <section className="asiair-panel">
+          <p className="label mb-2">Recent Plans</p>
+          {sessions.map((s) => (
+            <Link
+              key={s.id}
+              href="/sessions"
+              className="mb-2 flex items-center justify-between rounded-xl bg-[var(--card-elevated)] px-4 py-3 last:mb-0 hover:border-[var(--zwo-orange)]/20"
+            >
+              <div>
+                <p className="font-medium text-white">{s.name}</p>
+                <p className="text-xs text-[var(--muted)]">
+                  {s.mount_name} • {s.camera_name}
+                </p>
+              </div>
+              <div className="text-left">
+                <p className="text-xs text-[var(--muted)]">{s.session_date}</p>
+                <p className="text-xs text-[var(--zwo-orange)]">
+                  {s.image_count} frames
+                </p>
+              </div>
+            </Link>
+          ))}
+        </section>
+      )}
     </div>
   );
 }
