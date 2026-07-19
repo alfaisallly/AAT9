@@ -127,6 +127,23 @@ function LoginForm() {
           </form>
         </div>
 
+        {/* Active accounts */}
+        <div className="mt-4 rounded-xl border border-[var(--zwo-orange)]/20 bg-[var(--zwo-orange-dim)] p-4 text-xs">
+          <p className="mb-2 font-semibold text-[var(--zwo-orange)]">حسابات فعّالة</p>
+          <div className="space-y-2 text-[var(--foreground)]">
+            <div className="rounded-lg bg-black/20 px-3 py-2">
+              <p className="font-medium text-white">Eng. Ahmed alfaisal (مالك)</p>
+              <p className="text-[var(--muted)]">المستخدم: <span className="text-white">ahmed.alfaisal</span></p>
+              <p className="text-[var(--muted)]">كلمة المرور: <span className="text-white">AstroLab2026</span></p>
+            </div>
+            <div className="rounded-lg bg-black/20 px-3 py-2">
+              <p className="font-medium text-white">مستخدم AstroLab</p>
+              <p className="text-[var(--muted)]">المستخدم: <span className="text-white">astro</span></p>
+              <p className="text-[var(--muted)]">كلمة المرور: <span className="text-white">Astro2026</span></p>
+            </div>
+          </div>
+        </div>
+
         {/* Owner & copyright */}
         <div className="mt-8 rounded-2xl border border-[var(--card-border)]/50 bg-[var(--card)]/50 p-5 backdrop-blur-sm">
           <div className="mb-3 text-center">

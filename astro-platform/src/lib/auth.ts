@@ -2,8 +2,6 @@ import { createHmac, timingSafeEqual } from "crypto";
 
 const SECRET =
   process.env.ASTROLAB_SECRET || "astrolab-ahmed-alfaisal-secret-2026";
-const DEFAULT_USER = process.env.ASTROLAB_USER || "ahmed.alfaisal";
-const DEFAULT_PASS = process.env.ASTROLAB_PASSWORD || "AstroLab2026";
 
 export const SESSION_COOKIE = "astrolab_session";
 export const SESSION_MAX_AGE = 60 * 60 * 24 * 7; // 7 days
@@ -15,15 +13,6 @@ export const APP_OWNER = {
   copyright: `© ${new Date().getFullYear()} Eng. Ahmed alfaisal — جميع الحقوق محفوظة`,
   copyrightEn: `© ${new Date().getFullYear()} Eng. Ahmed alfaisal — All Rights Reserved`,
 };
-
-export function validateCredentials(
-  username: string,
-  password: string
-): boolean {
-  const u = username.trim().toLowerCase();
-  const validUser = DEFAULT_USER.toLowerCase();
-  return u === validUser && password === DEFAULT_PASS;
-}
 
 function sign(payload: string): string {
   return createHmac("sha256", SECRET).update(payload).digest("hex");

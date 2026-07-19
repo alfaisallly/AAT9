@@ -2,6 +2,13 @@ import Database from "better-sqlite3";
 import path from "path";
 import fs from "fs";
 import { migrateAndSeed, getAllGuiders, getAllSoftware } from "@/lib/seed";
+import {
+  findUserByUsername,
+  findUserForLogin,
+  initUsersSchema,
+  seedDefaultUsers,
+  UserRecord,
+} from "@/lib/users";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "astro.db");
@@ -17,7 +24,9 @@ function getDb(): Database.Database {
     db.pragma("journal_mode = WAL");
     db.pragma("foreign_keys = ON");
     initSchema(db);
+    initUsersSchema(db);
     migrateAndSeed(db);
+    seedDefaultUsers(db);
   }
   return db;
 }
@@ -111,6 +120,17 @@ function initSchema(database: Database.Database) {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `);
+}
+
+export function authenticateUser(
+  username: string,
+  password: string
+): UserRecord | null {
+  return findUserForLogin(getDb(), username, password);
+}
+
+export function getUserByUsername(username: string): UserRecord | null {
+  return findUserByUsername(getDb(), username);
 }
 
 export function getDashboardStats() {

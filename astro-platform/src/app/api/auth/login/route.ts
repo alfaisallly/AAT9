@@ -3,8 +3,8 @@ import {
   createSessionToken,
   SESSION_COOKIE,
   SESSION_MAX_AGE,
-  validateCredentials,
 } from "@/lib/auth";
+import { authenticateUser } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,17 +19,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!validateCredentials(username, password)) {
+    const user = authenticateUser(username, password);
+    if (!user) {
       return NextResponse.json(
         { error: "اسم المستخدم أو كلمة المرور غير صحيحة" },
         { status: 401 }
       );
     }
 
-    const token = createSessionToken(username);
+    const token = createSessionToken(user.username);
     const response = NextResponse.json({
       success: true,
-      username: username.toLowerCase(),
+      username: user.username,
+      displayName: user.display_name,
+      role: user.role,
     });
 
     response.cookies.set(SESSION_COOKIE, token, {
