@@ -18,6 +18,7 @@ import {
 import AsiairTopBar from "./AsiairTopBar";
 import AsiairTabBar from "./AsiairTabBar";
 import CopyrightFooter from "@/components/CopyrightFooter";
+import { useDeviceStatus } from "@/hooks/useDeviceStatus";
 
 const sideNav = [
   { href: "/", label: "الرئيسية", icon: Home },
@@ -33,6 +34,40 @@ const sideNav = [
   { href: "/checklist", label: "Checklist", icon: CheckSquare },
 ];
 
+function SidebarStatus() {
+  const { status } = useDeviceStatus(6000);
+  const connected = status?.connected;
+  const rig = status?.rig;
+  const battery = status?.battery;
+
+  const summary = [
+    rig?.mount_name?.split(" ")[0],
+    rig?.camera_name?.split(" ")[0],
+    rig?.controller_name?.split(" ")[0],
+  ]
+    .filter(Boolean)
+    .join(" • ");
+
+  return (
+    <div className="rounded-xl bg-[var(--card-elevated)] p-3">
+      <div className="flex items-center gap-2">
+        <span className={`status-dot ${connected ? "status-dot-online" : "bg-gray-600"}`} />
+        <span className={`text-xs ${connected ? "text-[var(--success)]" : "text-[var(--muted)]"}`}>
+          {connected ? "All Connected" : "Disconnected"}
+        </span>
+      </div>
+      <p className="mt-1 text-[10px] text-[var(--muted)]">
+        {summary || "اضبط Active Rig"}
+      </p>
+      {battery && battery.voltage > 0 && (
+        <p className="mt-1 tabular-nums text-[10px] text-[var(--zwo-orange)]">
+          🔋 {battery.voltage.toFixed(2)}V ({Math.round(battery.percent)}%)
+        </p>
+      )}
+    </div>
+  );
+}
+
 export default function AsiairShell({
   children,
 }: {
@@ -45,7 +80,6 @@ export default function AsiairShell({
       <AsiairTopBar />
 
       <div className="flex flex-1">
-        {/* Desktop sidebar — ASIAIR tablet layout */}
         <aside className="hidden w-[220px] shrink-0 flex-col border-l border-[var(--card-border)] bg-[#0a0b0f] lg:flex">
           <div className="border-b border-[var(--card-border)] p-5">
             <div className="flex items-center gap-3">
@@ -81,15 +115,7 @@ export default function AsiairShell({
           </nav>
 
           <div className="border-t border-[var(--card-border)] p-4 space-y-3">
-            <div className="rounded-xl bg-[var(--card-elevated)] p-3">
-              <div className="flex items-center gap-2">
-                <span className="status-dot status-dot-online" />
-                <span className="text-xs text-[var(--success)]">All Connected</span>
-              </div>
-              <p className="mt-1 text-[10px] text-[var(--muted)]">
-                EQ350 • ASI2600MM • ASIAIR Plus
-              </p>
-            </div>
+            <SidebarStatus />
             <CopyrightFooter compact />
           </div>
         </aside>

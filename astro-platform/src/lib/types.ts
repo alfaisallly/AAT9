@@ -114,3 +114,96 @@ export interface DashboardStats {
   calibrationFrames: number;
   targets: number;
 }
+
+export type ConnectionStatus = "connected" | "disconnected" | "connecting" | "offline";
+
+export interface Controller {
+  id: number;
+  name: string;
+  brand: string;
+  model: string;
+  ip_address: string | null;
+  wifi_ssid: string | null;
+  connection_status: ConnectionStatus;
+  battery_pct: number;
+  battery_voltage: number;
+  is_charging: number;
+  last_sync_at: string | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface FilterWheel {
+  id: number;
+  name: string;
+  brand: string;
+  model: string;
+  slots: number;
+  current_slot: number;
+  current_filter: string | null;
+  connection_status: ConnectionStatus;
+  controller_id: number | null;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface CustomEquipment {
+  id: number;
+  name: string;
+  category: string;
+  brand: string;
+  model: string;
+  specs_json: string | null;
+  connection_status: ConnectionStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export interface ActiveRig {
+  id: number;
+  name: string;
+  mount_id: number | null;
+  camera_id: number | null;
+  telescope_id: number | null;
+  guider_id: number | null;
+  filter_wheel_id: number | null;
+  controller_id: number | null;
+  asiair_profile: string | null;
+  updated_at: string;
+  mount_name?: string | null;
+  camera_name?: string | null;
+  telescope_name?: string | null;
+  guider_name?: string | null;
+  filter_wheel_name?: string | null;
+  controller_name?: string | null;
+}
+
+export interface DeviceStripItem {
+  id: string;
+  kind: string;
+  name: string;
+  type: string;
+  status: "online" | "offline" | "idle";
+  detail?: string;
+}
+
+export interface BatteryState {
+  voltage: number;
+  percent: number;
+  isCharging: boolean;
+  status: "full" | "good" | "low" | "critical";
+  controllerId: number | null;
+  controllerName: string | null;
+  lastSyncAt: string | null;
+}
+
+export interface DeviceStatusPayload {
+  connected: boolean;
+  rig: ActiveRig | null;
+  controller: Controller | null;
+  battery: BatteryState;
+  strip: DeviceStripItem[];
+  cameraTempC: number | null;
+  mountState: string;
+  guideRms: string | null;
+}

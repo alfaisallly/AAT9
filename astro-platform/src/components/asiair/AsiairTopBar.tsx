@@ -3,11 +3,15 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LogOut, Thermometer, User, Wifi } from "lucide-react";
+import AsiairBatteryPanel from "@/components/asiair/AsiairBatteryPanel";
+import { DeviceStatusPayload } from "@/lib/types";
+import { fetchJson } from "@/lib/utils";
 
 export default function AsiairTopBar() {
   const router = useRouter();
   const [time, setTime] = useState("");
   const [username, setUsername] = useState<string | null>(null);
+  const [deviceStatus, setDeviceStatus] = useState<DeviceStatusPayload | null>(null);
 
   useEffect(() => {
     const tick = () => {
@@ -33,11 +37,24 @@ export default function AsiairTopBar() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const load = () =>
+      fetchJson<DeviceStatusPayload>("/api/devices/status")
+        .then(setDeviceStatus)
+        .catch(() => {});
+    load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
+  }, []);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     router.push("/login");
     router.refresh();
   };
+
+  const battery = deviceStatus?.battery;
+  const connected = deviceStatus?.connected;
 
   return (
     <header className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-[var(--card-border)] bg-[#0a0b0f]/95 px-4 backdrop-blur-md lg:px-6">
@@ -57,23 +74,36 @@ export default function AsiairTopBar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-xs">
+      <div className="flex items-center gap-2 text-xs sm:gap-3">
         {username && (
           <div className="hidden items-center gap-1.5 rounded-lg bg-[var(--card-elevated)] px-2 py-1 sm:flex">
             <User size={12} className="text-[var(--zwo-orange)]" />
             <span className="text-white">{username}</span>
           </div>
         )}
-        <div className="hidden items-center gap-1.5 text-[var(--success)] sm:flex">
-          <span className="status-dot status-dot-online" />
-          <span>متصل</span>
+        <div className="hidden items-center gap-1.5 sm:flex">
+          <span
+            className={`status-dot ${connected ? "status-dot-online" : "bg-gray-600"}`}
+          />
+          <span className={connected ? "text-[var(--success)]" : "text-[var(--muted)]"}>
+            {connected ? "متصل" : "غير متصل"}
+          </span>
         </div>
-        <div className="hidden items-center gap-1 text-[var(--muted)] md:flex">
-          <Thermometer size={12} className="text-cyan-400" />
-          <span className="tabular-nums text-cyan-300">-10°C</span>
-        </div>
+        {battery && battery.voltage > 0 && (
+          <div className="hidden md:block">
+            <AsiairBatteryPanel battery={battery} connected={connected} compact />
+          </div>
+        )}
+        {deviceStatus?.cameraTempC != null && connected && (
+          <div className="hidden items-center gap-1 text-[var(--muted)] lg:flex">
+            <Thermometer size={12} className="text-cyan-400" />
+            <span className="tabular-nums text-cyan-300">
+              {deviceStatus.cameraTempC}°C
+            </span>
+          </div>
+        )}
         <div className="flex items-center gap-1 text-[var(--muted)]">
-          <Wifi size={12} className="text-[var(--zwo-orange)]" />
+          <Wifi size={12} className={connected ? "text-[var(--zwo-orange)]" : "text-gray-600"} />
         </div>
         <span className="tabular-nums font-medium text-white">{time}</span>
         <button

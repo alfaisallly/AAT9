@@ -2,18 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import {
-  Aperture,
-  Camera,
-  Crosshair,
-  Disc,
-  Pause,
-  Play,
-  Telescope,
-} from "lucide-react";
-import AsiairDeviceCard from "@/components/asiair/AsiairDeviceCard";
+import { Pause, Play } from "lucide-react";
+import AsiairBatteryPanel from "@/components/asiair/AsiairBatteryPanel";
+import AsiairDeviceStrip from "@/components/asiair/AsiairDeviceStrip";
+import DeviceControlPanel from "@/components/equipment/DeviceControlPanel";
 import { DashboardStats, Session, AstroImage } from "@/lib/types";
 import { fetchJson } from "@/lib/utils";
+import { useDeviceStatus } from "@/hooks/useDeviceStatus";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -21,6 +16,7 @@ export default function DashboardPage() {
   const [recentImages, setRecentImages] = useState<AstroImage[]>([]);
   const [loading, setLoading] = useState(true);
   const [imaging] = useState(false);
+  const { status: deviceStatus, loading: deviceLoading, refresh } = useDeviceStatus(5000);
 
   useEffect(() => {
     Promise.all([
@@ -46,39 +42,43 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-4">
-      {/* Equipment row — ASIAIR device strip */}
+      {/* Equipment row — ASIAIR device strip (live from Active Rig) */}
       <section>
-        <p className="label mb-2">Equipment</p>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          <AsiairDeviceCard
-            name="EQ350 Pro"
-            type="Mount"
-            detail="Parked"
-            icon={<Disc size={28} />}
+        <div className="mb-2 flex items-center justify-between">
+          <p className="label">Equipment</p>
+          <Link href="/equipment" className="text-[10px] text-[var(--zwo-orange)]">
+            إدارة →
+          </Link>
+        </div>
+        <AsiairDeviceStrip
+          items={deviceStatus?.strip ?? []}
+          loading={deviceLoading}
+        />
+      </section>
+
+      {/* Battery + ASIAIR control */}
+      <section className="grid gap-4 lg:grid-cols-3">
+        <div className="lg:col-span-1">
+          <AsiairBatteryPanel
+            battery={
+              deviceStatus?.battery ?? {
+                voltage: 0,
+                percent: 0,
+                isCharging: false,
+                status: "good",
+                controllerId: null,
+                controllerName: null,
+                lastSyncAt: null,
+              }
+            }
+            connected={deviceStatus?.connected}
           />
-          <AsiairDeviceCard
-            name="ASI2600MM"
-            type="Main Cam"
-            detail="-10°C"
-            icon={<Camera size={28} />}
-          />
-          <AsiairDeviceCard
-            name="SCA260"
-            type="Scope"
-            detail="1664mm"
-            icon={<Telescope size={28} />}
-          />
-          <AsiairDeviceCard
-            name="7× Wheel"
-            type="Filter"
-            detail="Ha"
-            icon={<Aperture size={28} />}
-          />
-          <AsiairDeviceCard
-            name="ASI120MM"
-            type="Guide"
-            detail="RMS 0.4″"
-            icon={<Crosshair size={28} />}
+        </div>
+        <div className="lg:col-span-2">
+          <DeviceControlPanel
+            controller={deviceStatus?.controller ?? null}
+            connected={deviceStatus?.connected ?? false}
+            onUpdated={refresh}
           />
         </div>
       </section>
@@ -127,7 +127,9 @@ export default function DashboardPage() {
               </div>
               <div>
                 <p className="asiair-stat-label">Temp</p>
-                <p className="asiair-stat-value text-lg text-cyan-400">-10°</p>
+                <p className="asiair-stat-value text-lg text-cyan-400">
+                  {deviceStatus?.cameraTempC ?? "—"}°
+                </p>
               </div>
               <div>
                 <p className="asiair-stat-label">Filter</p>

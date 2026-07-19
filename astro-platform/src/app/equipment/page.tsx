@@ -1,13 +1,19 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Camera, Monitor, Settings2, Telescope, Trash2, Crosshair } from "lucide-react";
+import { Camera, Monitor, Settings2, Telescope, Trash2, Crosshair, Battery, Smartphone, Layers, Plus } from "lucide-react";
 import PageHeader from "@/components/PageHeader";
 import Modal from "@/components/Modal";
 import { Camera as CameraType, Mount, Telescope as TelescopeType } from "@/lib/types";
 import { fetchJson, mountTypeLabels } from "@/lib/utils";
+import {
+  EquipmentAsiairPanel,
+  EquipmentCustomPanel,
+  EquipmentPowerPanel,
+  EquipmentRigPanel,
+} from "@/components/equipment/EquipmentDevicePanels";
 
-type Tab = "mounts" | "cameras" | "telescopes" | "guiders" | "software";
+type Tab = "mounts" | "cameras" | "telescopes" | "guiders" | "software" | "rig" | "asiair" | "power" | "custom";
 
 interface Guider {
   id: number;
@@ -34,6 +40,7 @@ export default function EquipmentPage() {
   const [guiders, setGuiders] = useState<Guider[]>([]);
   const [software, setSoftware] = useState<SoftwareItem[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
+  const [guiderModal, setGuiderModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   const loadData = () => {
@@ -57,13 +64,16 @@ export default function EquipmentPage() {
 
   useEffect(loadData, []);
 
-  const handleDelete = async (type: Tab, id: number) => {
+  const handleDelete = async (type: string, id: number) => {
     if (!confirm("هل أنت متأكد من الحذف؟")) return;
     await fetch(`/api/${type}?id=${id}`, { method: "DELETE" });
     loadData();
   };
 
   const tabs = [
+    { id: "rig" as Tab, label: "Active Rig", icon: Layers, count: 1 },
+    { id: "power" as Tab, label: "Battery", icon: Battery, count: 0 },
+    { id: "asiair" as Tab, label: "ASIAIR", icon: Smartphone, count: 0 },
     { id: "mounts" as Tab, label: "الحوامل", icon: Settings2, count: mounts.length },
     { id: "cameras" as Tab, label: "الكاميرات", icon: Camera, count: cameras.length },
     {
@@ -73,6 +83,7 @@ export default function EquipmentPage() {
       count: telescopes.length,
     },
     { id: "guiders" as Tab, label: "التوجيه", icon: Crosshair, count: guiders.length },
+    { id: "custom" as Tab, label: "معدات إضافية", icon: Plus, count: 0 },
     { id: "software" as Tab, label: "البرامج", icon: Monitor, count: software.length },
   ];
 
@@ -86,11 +97,15 @@ export default function EquipmentPage() {
           <button className="btn-primary" onClick={() => setModalOpen(true)}>
             + إضافة {tab === "mounts" ? "حامل" : tab === "cameras" ? "كamera" : "تلسكوب"}
           </button>
+          ) : tab === "guiders" ? (
+          <button className="btn-primary" onClick={() => setGuiderModal(true)}>
+            + إضافة Guider
+          </button>
           ) : undefined
         }
       />
 
-      <div className="mb-6 flex gap-2">
+      <div className="mb-6 flex flex-wrap gap-2">
         {tabs.map(({ id, label, icon: Icon, count }) => (
           <button
             key={id}
@@ -114,6 +129,22 @@ export default function EquipmentPage() {
         <div className="text-[var(--muted)]">جاري التحميل...</div>
       ) : (
         <>
+          {tab === "rig" && (
+            <EquipmentRigPanel
+              mounts={mounts}
+              cameras={cameras}
+              telescopes={telescopes}
+              guiders={guiders}
+              onSaved={loadData}
+            />
+          )}
+
+          {tab === "power" && <EquipmentPowerPanel />}
+
+          {tab === "asiair" && <EquipmentAsiairPanel />}
+
+          {tab === "custom" && <EquipmentCustomPanel />}
+
           {tab === "mounts" && (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
               {mounts.map((mount) => (
@@ -243,8 +274,18 @@ export default function EquipmentPage() {
             <div className="grid gap-4 md:grid-cols-2">
               {guiders.map((g) => (
                 <div key={g.id} className="card">
-                  <h3 className="font-semibold text-white">{g.name}</h3>
-                  <p className="text-sm text-[var(--muted)]">{g.brand} {g.model}</p>
+                  <div className="mb-2 flex items-start justify-between">
+                    <div>
+                      <h3 className="font-semibold text-white">{g.name}</h3>
+                      <p className="text-sm text-[var(--muted)]">{g.brand} {g.model}</p>
+                    </div>
+                    <button
+                      className="btn-danger"
+                      onClick={() => handleDelete("guiders", g.id)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
                   <div className="mt-2 space-y-1 text-sm">
                     {g.resolution && <p>الدقة: {g.resolution}</p>}
                     {g.pixel_size_um && <p>البكسل: {g.pixel_size_um} µm</p>}
@@ -284,6 +325,15 @@ export default function EquipmentPage() {
         }}
       />
       )}
+
+      <GuiderModal
+        open={guiderModal}
+        onClose={() => setGuiderModal(false)}
+        onSaved={() => {
+          setGuiderModal(false);
+          loadData();
+        }}
+      />
     </div>
   );
 }
@@ -518,6 +568,77 @@ function EquipmentModal({
           </button>
           <button type="submit" className="btn-primary" disabled={saving}>
             {saving ? "جاري الحفظ..." : "حفظ"}
+          </button>
+        </div>
+      </form>
+    </Modal>
+  );
+}
+
+function GuiderModal({
+  open,
+  onClose,
+  onSaved,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState<Record<string, string>>({});
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    try {
+      const body: Record<string, unknown> = { ...form };
+      if (form.pixel_size_um) body.pixel_size_um = Number(form.pixel_size_um);
+      await fetchJson("/api/guiders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      setForm({});
+      onSaved();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "حدث خطأ");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="إضافة كاميرا توجيه">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="label">الاسم *</label>
+          <input
+            className="input-field"
+            required
+            value={form.name || ""}
+            onChange={(e) => setForm({ ...form, name: e.target.value })}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <input
+            className="input-field"
+            placeholder="الشركة"
+            value={form.brand || ""}
+            onChange={(e) => setForm({ ...form, brand: e.target.value })}
+          />
+          <input
+            className="input-field"
+            placeholder="الموديل"
+            value={form.model || ""}
+            onChange={(e) => setForm({ ...form, model: e.target.value })}
+          />
+        </div>
+        <div className="flex justify-end gap-3 pt-2">
+          <button type="button" className="btn-secondary" onClick={onClose}>
+            إلغاء
+          </button>
+          <button type="submit" className="btn-primary" disabled={saving}>
+            {saving ? "..." : "حفظ"}
           </button>
         </div>
       </form>

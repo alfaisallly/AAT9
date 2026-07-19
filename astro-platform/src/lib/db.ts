@@ -9,11 +9,16 @@ import {
   seedDefaultUsers,
   UserRecord,
 } from "@/lib/users";
+import { initDevicesSchema } from "@/lib/devices";
 
 const DB_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DB_DIR, "astro.db");
 
 let db: Database.Database | null = null;
+
+export function getDatabase(): Database.Database {
+  return getDb();
+}
 
 function getDb(): Database.Database {
   if (!db) {
@@ -26,6 +31,7 @@ function getDb(): Database.Database {
     initSchema(db);
     initUsersSchema(db);
     migrateAndSeed(db);
+    initDevicesSchema(db);
     seedDefaultUsers(db);
   }
   return db;
