@@ -11,6 +11,7 @@ import {
   ImageIcon,
   Layers,
   Map,
+  Scan,
   Settings2,
   Smartphone,
 } from "lucide-react";
@@ -20,6 +21,7 @@ import CopyrightFooter from "@/components/CopyrightFooter";
 
 const sideNav = [
   { href: "/", label: "الرئيسية", icon: Home },
+  { href: "/imaging", label: "Imaging", icon: Scan },
   { href: "/equipment", label: "المعدات", icon: Settings2 },
   { href: "/sessions", label: "Plan / Sequence", icon: Layers },
   { href: "/gallery", label: "Album", icon: ImageIcon },

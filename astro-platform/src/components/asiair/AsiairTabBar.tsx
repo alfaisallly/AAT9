@@ -9,15 +9,15 @@ import {
   ImageIcon,
   Layers,
   MoreHorizontal,
-  Settings2,
+  Scan,
 } from "lucide-react";
 import { useState } from "react";
 
 const mainTabs = [
   { href: "/", label: "الرئيسية", icon: Home },
-  { href: "/equipment", label: "المعدات", icon: Settings2 },
-  { href: "/sessions", label: "التسلسل", icon: Layers },
+  { href: "/imaging", label: "Imaging", icon: Scan },
   { href: "/gallery", label: "المعرض", icon: ImageIcon },
+  { href: "/sessions", label: "التسلسل", icon: Layers },
   { href: "/targets", label: "الأهداف", icon: Crosshair },
 ];
 

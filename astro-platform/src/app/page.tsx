@@ -20,7 +20,7 @@ export default function DashboardPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [recentImages, setRecentImages] = useState<AstroImage[]>([]);
   const [loading, setLoading] = useState(true);
-  const [imaging, setImaging] = useState(false);
+  const [imaging] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -143,21 +143,13 @@ export default function DashboardPage() {
             <p className="text-xs text-[var(--muted)]">Sequence Control</p>
             <div className="flex items-center gap-6">
               {!imaging ? (
-                <button
-                  className="btn-asiair-round"
-                  onClick={() => setImaging(true)}
-                  aria-label="Start"
-                >
+                <Link href="/imaging" className="btn-asiair-round">
                   <Play size={28} fill="white" className="mr-[-2px]" />
-                </button>
+                </Link>
               ) : (
-                <button
-                  className="btn-asiair-stop"
-                  onClick={() => setImaging(false)}
-                  aria-label="Stop"
-                >
+                <Link href="/imaging" className="btn-asiair-stop">
                   <Pause size={28} fill="white" />
-                </button>
+                </Link>
               )}
             </div>
             <p className="text-sm text-white">
