@@ -38,7 +38,7 @@ export default function Login() {
           </p>
           <div className="login-brand-features">
             <div className="login-feature"><span className="login-feature-dot" />إدارة مخزون الأجهزة والحركات</div>
-            <div className="login-feature"><span className="login-feature-dot" />بحث بالرقم الأميني والمديرية</div>
+            <div className="login-feature"><span className="login-feature-dot" />بحث بالرقم المصنعي والمديرية</div>
             <div className="login-feature"><span className="login-feature-dot" />تقارير وجاهزية احترافية</div>
             <div className="login-feature"><span className="login-feature-dot" />توثيق الكتب الرسمية والتعديلات</div>
           </div>
