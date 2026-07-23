@@ -63,9 +63,14 @@ def export_devices_excel(
         "الشركة",
         "الموديل",
         "المحافظة",
-        "الحالة",
         "الموقع",
+        "القسم",
+        "المسؤول",
+        "الحالة",
+        "وصف الحالة",
         "تاريخ الشراء",
+        "تاريخ الاستلام",
+        "انتهاء الضمان",
         "ملاحظات",
     ]
     ws.append(headers)
@@ -80,9 +85,14 @@ def export_devices_excel(
             d.model.brand.name_ar if d.model and d.model.brand else "",
             d.model.name if d.model else "",
             d.province.name_ar if d.province else "",
-            DEVICE_STATUS_AR.get(d.status, str(d.status)),
             d.location or "",
+            d.department or "",
+            d.assigned_to or "",
+            DEVICE_STATUS_AR.get(d.status, str(d.status)),
+            d.condition_notes or "",
             str(d.purchase_date) if d.purchase_date else "",
+            str(d.received_date) if d.received_date else "",
+            str(d.warranty_expiry) if d.warranty_expiry else "",
             d.notes or "",
         ])
 

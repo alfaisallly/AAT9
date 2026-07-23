@@ -6,7 +6,8 @@ from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine
-from app.routers import auth, books, brands, dashboard, devices, export, provinces, users
+from app.migrate import migrate_database
+from app.routers import auth, books, brands, dashboard, devices, export, inventory, provinces, users
 from app.seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -35,10 +36,12 @@ app.include_router(devices.router, prefix="/api")
 app.include_router(books.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
+app.include_router(inventory.router, prefix="/api")
 
 
 @app.on_event("startup")
 def on_startup():
+    migrate_database()
     db = SessionLocal()
     try:
         seed_database(db)

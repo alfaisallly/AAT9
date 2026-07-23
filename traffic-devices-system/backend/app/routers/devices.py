@@ -38,6 +38,8 @@ def list_devices(
             (Device.serial_number.ilike(like))
             | (Device.asset_number.ilike(like))
             | (Device.location.ilike(like))
+            | (Device.department.ilike(like))
+            | (Device.assigned_to.ilike(like))
         )
 
     return query.order_by(Device.id.desc()).all()

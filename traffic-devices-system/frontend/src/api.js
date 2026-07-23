@@ -126,6 +126,14 @@ export const api = {
 
   exportDashboardPdf: (provinceId) =>
     downloadFile(`/export/dashboard/pdf${buildQuery({ province_id: provinceId })}`, 'dashboard_report.pdf'),
+
+  getInventory: (params = {}) => {
+    const query = new URLSearchParams();
+    Object.entries(params).forEach(([k, v]) => v && query.append(k, v));
+    return request(`/inventory/?${query.toString()}`);
+  },
+  createInventoryMovement: (data) =>
+    request('/inventory/', { method: 'POST', body: JSON.stringify(data) }),
 };
 
 export const labels = {
@@ -147,6 +155,12 @@ export const labels = {
   bookTypes: {
     receipt: 'استلام',
     delivery: 'تسليم',
+  },
+  movementTypes: {
+    in: 'إدخال',
+    out: 'إخراج',
+    transfer: 'نقل',
+    status_change: 'تغيير حالة',
   },
 };
 

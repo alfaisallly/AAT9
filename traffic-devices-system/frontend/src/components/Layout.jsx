@@ -4,7 +4,7 @@ import { labels } from '../api';
 
 const navItems = [
   { to: '/', label: 'لوحة التحكم', icon: '📊' },
-  { to: '/devices', label: 'الأجهزة', icon: '📻' },
+  { to: '/devices', label: 'مخزن الأجهزة', icon: '📻' },
   { to: '/books', label: 'الكتب الرسمية', icon: '📋' },
   { to: '/brands', label: 'الشركات والموديلات', icon: '🏭' },
   { to: '/users', label: 'المستخدمون', icon: '👥', adminOnly: true },

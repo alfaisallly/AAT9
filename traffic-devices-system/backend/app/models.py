@@ -35,6 +35,13 @@ class DeviceStatus(str, enum.Enum):
     CONSUMED_DISABLED = "consumed_disabled"
 
 
+class MovementType(str, enum.Enum):
+    IN = "in"
+    OUT = "out"
+    TRANSFER = "transfer"
+    STATUS_CHANGE = "status_change"
+
+
 class BookType(str, enum.Enum):
     RECEIPT = "receipt"
     DELIVERY = "delivery"
@@ -104,8 +111,13 @@ class Device(Base):
     status = Column(Enum(DeviceStatus), default=DeviceStatus.WORKING, nullable=False)
     device_type = Column(Enum(DeviceType), nullable=False)
     location = Column(String(200), nullable=True)
+    department = Column(String(150), nullable=True)
+    assigned_to = Column(String(150), nullable=True)
+    condition_notes = Column(Text, nullable=True)
     notes = Column(Text, nullable=True)
     purchase_date = Column(Date, nullable=True)
+    received_date = Column(Date, nullable=True)
+    warranty_expiry = Column(Date, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -114,6 +126,29 @@ class Device(Base):
     province = relationship("Province", back_populates="devices")
     created_by = relationship("User")
     book_items = relationship("BookDeviceItem", back_populates="device")
+    movements = relationship("InventoryMovement", back_populates="device")
+
+
+class InventoryMovement(Base):
+    __tablename__ = "inventory_movements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    movement_type = Column(Enum(MovementType), nullable=False)
+    movement_date = Column(Date, nullable=False)
+    province_id = Column(Integer, ForeignKey("provinces.id"), nullable=False)
+    from_entity = Column(String(200), nullable=True)
+    to_entity = Column(String(200), nullable=True)
+    reference_number = Column(String(100), nullable=True)
+    previous_status = Column(Enum(DeviceStatus), nullable=True)
+    new_status = Column(Enum(DeviceStatus), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    device = relationship("Device", back_populates="movements")
+    province = relationship("Province")
+    created_by = relationship("User")
 
 
 class OfficialBook(Base):

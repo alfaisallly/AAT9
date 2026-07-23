@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models import BookType, DeviceStatus, DeviceType, UserRole
+from app.models import BookType, DeviceStatus, DeviceType, MovementType, UserRole
 
 
 # Auth
@@ -106,8 +106,13 @@ class DeviceBase(BaseModel):
     status: DeviceStatus = DeviceStatus.WORKING
     device_type: DeviceType
     location: Optional[str] = None
+    department: Optional[str] = None
+    assigned_to: Optional[str] = None
+    condition_notes: Optional[str] = None
     notes: Optional[str] = None
     purchase_date: Optional[date] = None
+    received_date: Optional[date] = None
+    warranty_expiry: Optional[date] = None
 
 
 class DeviceCreate(DeviceBase):
@@ -122,8 +127,13 @@ class DeviceUpdate(BaseModel):
     status: Optional[DeviceStatus] = None
     device_type: Optional[DeviceType] = None
     location: Optional[str] = None
+    department: Optional[str] = None
+    assigned_to: Optional[str] = None
+    condition_notes: Optional[str] = None
     notes: Optional[str] = None
     purchase_date: Optional[date] = None
+    received_date: Optional[date] = None
+    warranty_expiry: Optional[date] = None
 
 
 class DeviceResponse(DeviceBase):
@@ -131,6 +141,34 @@ class DeviceResponse(DeviceBase):
     created_at: datetime
     updated_at: datetime
     model: Optional[DeviceModelResponse] = None
+    province: Optional[ProvinceResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Inventory Movement
+class InventoryMovementBase(BaseModel):
+    device_id: int
+    movement_type: MovementType
+    movement_date: date
+    province_id: int
+    from_entity: Optional[str] = None
+    to_entity: Optional[str] = None
+    reference_number: Optional[str] = None
+    previous_status: Optional[DeviceStatus] = None
+    new_status: Optional[DeviceStatus] = None
+    notes: Optional[str] = None
+
+
+class InventoryMovementCreate(InventoryMovementBase):
+    update_device_status: bool = False
+
+
+class InventoryMovementResponse(InventoryMovementBase):
+    id: int
+    created_at: datetime
+    device: Optional[DeviceResponse] = None
     province: Optional[ProvinceResponse] = None
 
     class Config:
