@@ -1,17 +1,21 @@
 from typing import Optional
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
-from app.auth import get_current_user
+from app.auth import get_current_user, require_roles
 from app.database import get_db
-from app.models import User
+from app.models import User, UserRole
 from app.services.excel_export import export_books_excel, export_devices_excel
+from app.services.excel_import import import_devices_from_excel
+from app.services.excel_template import generate_devices_import_template
 from app.services.pdf_export import generate_book_pdf, generate_dashboard_pdf, generate_devices_pdf
 
 router = APIRouter(prefix="/export", tags=["التصدير والطباعة"])
+
+IMPORT_ROLES = (UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.LIAISON, UserRole.OPERATOR)
 
 
 def _file_response(buffer, filename: str, media_type: str):
@@ -23,6 +27,36 @@ def _file_response(buffer, filename: str, media_type: str):
             "Content-Disposition": f"attachment; filename*=UTF-8''{encoded_filename}",
         },
     )
+
+
+@router.get("/devices/template")
+def download_devices_import_template(
+    province: Optional[str] = Query(None, description="اسم المحافظة لملء الحقل تلقائياً"),
+    db: Session = Depends(get_db),
+    _: User = Depends(get_current_user),
+):
+    buffer = generate_devices_import_template(db, province_hint=province)
+    return _file_response(
+        buffer,
+        "نموذج_جمع_بيانات_الأجهزة_مديرية_المرور.xlsx",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+
+
+@router.post("/devices/import")
+async def import_devices_excel(
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(require_roles(*IMPORT_ROLES)),
+):
+    if not file.filename or not file.filename.lower().endswith((".xlsx", ".xlsm")):
+        raise HTTPException(status_code=400, detail="يجب رفع ملف Excel بصيغة .xlsx")
+    content = await file.read()
+    try:
+        result = import_devices_from_excel(db, content, user)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return result
 
 
 @router.get("/devices/excel")

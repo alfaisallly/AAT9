@@ -1399,7 +1399,15 @@ tbody tr:hover td {
 }
 
 /* Province dashboard */
-.provinces-overview-header {
+.template-info-card p {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.75;
+}
+
+.template-info-card {
+  border-right: 4px solid var(--accent);
+}
   margin: 1.5rem 0 1rem;
 }
 

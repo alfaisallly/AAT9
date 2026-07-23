@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { api, labels, statusBadgeClass } from '../api';
 import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/ui/PageHeader';
@@ -25,6 +25,32 @@ export default function Devices() {
   const [form, setForm] = useState(emptyDeviceForm);
   const [error, setError] = useState('');
   const [selectedDevice, setSelectedDevice] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const handleDownloadTemplate = () => {
+    const provinceName = provinces.find((p) => String(p.id) === String(filters.province_id))?.name_ar;
+    api.downloadDevicesTemplate(provinceName);
+  };
+
+  const handleImportExcel = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const result = await api.importDevicesExcel(file);
+      const msg = [
+        `تم استيراد ${result.total_processed} جهاز`,
+        result.created ? `(${result.created} جديد)` : '',
+        result.updated ? `(${result.updated} محدّث)` : '',
+        result.errors?.length ? `\nأخطاء (${result.errors.length}):\n${result.errors.slice(0, 5).join('\n')}` : '',
+      ].join(' ');
+      alert(msg);
+      loadData();
+    } catch (err) {
+      alert(err.message);
+    } finally {
+      e.target.value = '';
+    }
+  };
 
   const loadData = () =>
     api.getDevices({ ...filters, directorate_id: activeDirectorateId || undefined }).then(setDevices);
@@ -107,9 +133,12 @@ export default function Devices() {
       >
         {activeTab === 'list' && (
           <div className="btn-group">
+            <button type="button" className="btn btn-secondary" onClick={handleDownloadTemplate}>تنزيل نموذج Excel</button>
+            <button type="button" className="btn btn-secondary" onClick={() => fileInputRef.current?.click()}>استيراد Excel</button>
             <button type="button" className="btn btn-export" onClick={() => api.exportDevicesExcel(exportParams)}>Excel</button>
             <button type="button" className="btn btn-print" onClick={() => api.exportDevicesPdf(exportParams)}>PDF</button>
             <button type="button" className="btn btn-primary" onClick={openCreate}>إدخال جهاز</button>
+            <input ref={fileInputRef} type="file" accept=".xlsx,.xlsm" hidden onChange={handleImportExcel} />
           </div>
         )}
       </PageHeader>
@@ -129,6 +158,17 @@ export default function Devices() {
 
       {activeTab === 'list' && (
         <>
+          <div className="card template-info-card">
+            <div className="card-header">
+              <h3>نموذج جمع البيانات للمحافظات والمقر</h3>
+            </div>
+            <p>
+              نزّل نموذج Excel الموحّد، وزّعه على المحافظات والمقر المركزي لتعبئة بيانات الأجهزة.
+              بعد التعبئة، ارفع الملف عبر «استيراد Excel» أو أرسله للمقر المركزي.
+              النموذج يتضمن تعليمات، قوائم مرجعية، وقوائم منسدلة للمحافظات والمديريات والشركات.
+            </p>
+          </div>
+
           <div className="stats-grid device-stats">
             <div className="stat-card accent"><h3>إجمالي الأجهزة</h3><div className="value">{stats.total}</div></div>
             <div className="stat-card success"><h3>يصلح للعمل</h3><div className="value">{stats.working}</div></div>

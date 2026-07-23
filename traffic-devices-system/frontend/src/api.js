@@ -116,6 +116,33 @@ export const api = {
   exportDashboardPdf: (directorateId) =>
     downloadFile(`/export/dashboard/pdf${buildQuery({ directorate_id: directorateId })}`, 'dashboard_report.pdf'),
 
+  downloadDevicesTemplate: (province) =>
+    downloadFile(
+      `/export/devices/template${buildQuery({ province })}`,
+      'نموذج_جمع_بيانات_الأجهزة_مديرية_المرور.xlsx',
+    ),
+
+  importDevicesExcel: async (file) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_BASE}/export/devices/import`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: 'فشل الاستيراد' }));
+      throw new Error(typeof err.detail === 'string' ? err.detail : 'فشل الاستيراد');
+    }
+    return response.json();
+  },
+
   searchDevices: (data) =>
     request('/search/', { method: 'POST', body: JSON.stringify(data) }),
 
