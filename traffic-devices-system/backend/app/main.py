@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, SessionLocal, engine
-from app.routers import auth, books, brands, dashboard, devices, provinces, users
+from app.routers import auth, books, brands, dashboard, devices, export, provinces, users
 from app.seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -28,6 +28,7 @@ app.include_router(brands.router, prefix="/api")
 app.include_router(devices.router, prefix="/api")
 app.include_router(books.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
+app.include_router(export.router, prefix="/api")
 
 
 @app.on_event("startup")

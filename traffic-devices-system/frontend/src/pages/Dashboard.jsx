@@ -16,16 +16,27 @@ export default function Dashboard() {
 
   if (!stats) return <div>جاري التحميل...</div>;
 
+  const handleExportPdf = async () => {
+    try {
+      await api.exportDashboardPdf(provinceId || undefined);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
         <h2>لوحة التحكم</h2>
-        <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)}>
-          <option value="">جميع المحافظات</option>
-          {provinces.map((p) => (
-            <option key={p.id} value={p.id}>{p.name_ar}</option>
-          ))}
-        </select>
+        <div className="btn-group">
+          <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)}>
+            <option value="">جميع المحافظات</option>
+            {provinces.map((p) => (
+              <option key={p.id} value={p.id}>{p.name_ar}</option>
+            ))}
+          </select>
+          <button className="btn btn-print" onClick={handleExportPdf}>📄 تصدير PDF</button>
+        </div>
       </div>
 
       <div className="stats-grid">

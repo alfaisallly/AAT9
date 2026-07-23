@@ -36,6 +36,41 @@ async function request(path, options = {}) {
   return response.json();
 }
 
+async function downloadFile(path, filename) {
+  const token = getToken();
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'حدث خطأ' }));
+    throw new Error(error.detail || 'حدث خطأ');
+  }
+
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function buildQuery(params) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => v && query.append(k, v));
+  const qs = query.toString();
+  return qs ? `?${qs}` : '';
+}
+
 export const api = {
   login: (username, password) =>
     request('/auth/login-json', {
@@ -76,6 +111,21 @@ export const api = {
   createBook: (data) => request('/books/', { method: 'POST', body: JSON.stringify(data) }),
   updateBook: (id, data) => request(`/books/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
   deleteBook: (id) => request(`/books/${id}`, { method: 'DELETE' }),
+
+  exportDevicesExcel: (params = {}) =>
+    downloadFile(`/export/devices/excel${buildQuery(params)}`, 'devices_report.xlsx'),
+
+  exportDevicesPdf: (params = {}) =>
+    downloadFile(`/export/devices/pdf${buildQuery(params)}`, 'devices_report.pdf'),
+
+  exportBooksExcel: (params = {}) =>
+    downloadFile(`/export/books/excel${buildQuery(params)}`, 'official_books.xlsx'),
+
+  exportBookPdf: (bookId) =>
+    downloadFile(`/export/books/${bookId}/pdf`, `book_${bookId}.pdf`),
+
+  exportDashboardPdf: (provinceId) =>
+    downloadFile(`/export/dashboard/pdf${buildQuery({ province_id: provinceId })}`, 'dashboard_report.pdf'),
 };
 
 export const labels = {

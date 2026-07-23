@@ -391,7 +391,30 @@ tr:hover td {
   color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
+.btn-group {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.btn-export {
+  background: #1e8449;
+  color: white;
+}
+
+.btn-export:hover {
+  background: #196f3d;
+}
+
+.btn-print {
+  background: #7d6608;
+  color: white;
+}
+
+.btn-print:hover {
+  background: #6c5907;
+}
+
   .sidebar {
     width: 100%;
     position: relative;

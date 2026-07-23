@@ -95,11 +95,37 @@ export default function Devices() {
 
   const filteredModels = models.filter((m) => !form.device_type || m.device_type === form.device_type);
 
+  const exportParams = {
+    province_id: filters.province_id,
+    status: filters.status,
+    device_type: filters.device_type,
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      await api.exportDevicesExcel(exportParams);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handleExportPdf = async () => {
+    try {
+      await api.exportDevicesPdf(exportParams);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
         <h2>إدارة الأجهزة</h2>
-        <button className="btn btn-primary" onClick={openCreate}>+ إضافة جهاز</button>
+        <div className="btn-group">
+          <button className="btn btn-export" onClick={handleExportExcel}>📊 Excel</button>
+          <button className="btn btn-print" onClick={handleExportPdf}>📄 PDF</button>
+          <button className="btn btn-primary" onClick={openCreate}>+ إضافة جهاز</button>
+        </div>
       </div>
 
       <div className="filters">

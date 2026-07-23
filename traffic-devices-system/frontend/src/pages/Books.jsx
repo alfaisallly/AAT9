@@ -114,11 +114,30 @@ export default function Books() {
     return d ? `${d.serial_number} - ${labels.deviceTypes[d.device_type]}` : deviceId;
   };
 
+  const handleExportExcel = async () => {
+    try {
+      await api.exportBooksExcel(filters);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
+  const handlePrintBook = async (bookId) => {
+    try {
+      await api.exportBookPdf(bookId);
+    } catch (err) {
+      alert(err.message);
+    }
+  };
+
   return (
     <div>
       <div className="page-header">
         <h2>أرشيف الكتب الرسمية</h2>
-        <button className="btn btn-primary" onClick={openCreate}>+ إضافة كتاب</button>
+        <div className="btn-group">
+          <button className="btn btn-export" onClick={handleExportExcel}>📊 Excel</button>
+          <button className="btn btn-primary" onClick={openCreate}>+ إضافة كتاب</button>
+        </div>
       </div>
 
       <div className="filters">
@@ -162,7 +181,8 @@ export default function Books() {
                   <td>{b.to_entity}</td>
                   <td>{b.device_items?.length || 0}</td>
                   <td>
-                    <button className="btn btn-secondary btn-sm" onClick={() => openEdit(b)}>تعديل</button>
+                    <button className="btn btn-print btn-sm" onClick={() => handlePrintBook(b.id)}>طباعة</button>
+                    <button className="btn btn-secondary btn-sm" style={{ marginRight: '0.5rem' }} onClick={() => openEdit(b)}>تعديل</button>
                     {isManager && (
                       <button className="btn btn-danger btn-sm" style={{ marginRight: '0.5rem' }} onClick={() => handleDelete(b.id)}>حذف</button>
                     )}
