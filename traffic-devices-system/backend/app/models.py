@@ -21,7 +21,21 @@ class UserRole(str, enum.Enum):
     SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
     MANAGER = "manager"
+    LIAISON = "liaison"
     OPERATOR = "operator"
+
+
+class SearchType(str, enum.Enum):
+    ASSET_NUMBER = "asset_number"
+    DIRECTORATE = "directorate"
+    GENERAL = "general"
+
+
+class AuditAction(str, enum.Enum):
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+    SEARCH = "search"
 
 
 class DirectorateType(str, enum.Enum):
@@ -244,3 +258,39 @@ class BookDeviceItem(Base):
 
     book = relationship("OfficialBook", back_populates="device_items")
     device = relationship("Device", back_populates="book_items")
+
+
+class SearchLog(Base):
+    __tablename__ = "search_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    search_type = Column(Enum(SearchType), nullable=False)
+    query_value = Column(String(300), nullable=False)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
+    results_count = Column(Integer, default=0)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    directorate = relationship("Directorate")
+
+
+class AuditLog(Base):
+    __tablename__ = "audit_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    action = Column(Enum(AuditAction), nullable=False)
+    entity_type = Column(String(50), nullable=False)
+    entity_id = Column(Integer, nullable=True)
+    entity_label = Column(String(200), nullable=True)
+    changes_summary = Column(Text, nullable=True)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    official_book_number = Column(String(100), nullable=True)
+    book_image_path = Column(String(500), nullable=True)
+    book_image_filename = Column(String(255), nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    directorate = relationship("Directorate")
+

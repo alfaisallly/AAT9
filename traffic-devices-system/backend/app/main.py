@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine
 from app.migrate import migrate_database
-from app.routers import auth, books, brands, dashboard, devices, directorates, export, inventory, provinces, reports, users
+from app.routers import auth, audit, books, brands, dashboard, devices, directorates, export, inventory, provinces, reports, search, uploads, users
 from app.seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -38,7 +38,14 @@ app.include_router(books.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
 app.include_router(reports.router, prefix="/api")
+app.include_router(search.router, prefix="/api")
+app.include_router(audit.router, prefix="/api")
+app.include_router(uploads.router, prefix="/api")
 app.include_router(inventory.router, prefix="/api")
+
+UPLOADS_DIR = Path(__file__).resolve().parent.parent / "uploads"
+UPLOADS_DIR.mkdir(exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(UPLOADS_DIR)), name="uploads")
 
 
 @app.on_event("startup")

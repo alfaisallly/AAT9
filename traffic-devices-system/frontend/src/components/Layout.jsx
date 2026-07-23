@@ -5,15 +5,17 @@ import DirectorateSelector from './DirectorateSelector';
 
 const navItems = [
   { to: '/', label: 'لوحة التحكم', icon: '📊' },
-  { to: '/devices', label: 'مخزن الأجهزة', icon: '📻' },
-  { to: '/reports', label: 'التقارير', icon: '📈' },
-  { to: '/books', label: 'الكتب الرسمية', icon: '📋' },
-  { to: '/brands', label: 'الشركات والموديلات', icon: '🏭' },
+  { to: '/search', label: 'البحث', icon: '🔍' },
+  { to: '/devices', label: 'مخزن الأجهزة', icon: '📻', hideForLiaison: true },
+  { to: '/liaison', label: 'واجهة المديرية', icon: '🏛️', liaisonOnly: true },
+  { to: '/reports', label: 'التقارير', icon: '📈', hideForLiaison: true },
+  { to: '/books', label: 'الكتب الرسمية', icon: '📋', hideForLiaison: true },
+  { to: '/brands', label: 'الشركات والموديلات', icon: '🏭', hideForLiaison: true },
   { to: '/users', label: 'المستخدمون', icon: '👥', adminOnly: true },
 ];
 
 export default function Layout() {
-  const { user, logout, isAdmin, isCentral } = useAuth();
+  const { user, logout, isAdmin, isCentral, isLiaison } = useAuth();
   const navigate = useNavigate();
 
   return (
@@ -24,7 +26,12 @@ export default function Layout() {
           <p>مديرية المرور العامة — العراق</p>
         </div>
         <nav>
-          {navItems.filter((i) => !i.adminOnly || isAdmin).map((item) => (
+          {navItems.filter((i) => {
+            if (i.adminOnly && !isAdmin) return false;
+            if (i.liaisonOnly && !isLiaison) return false;
+            if (i.hideForLiaison && isLiaison) return false;
+            return true;
+          }).map((item) => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
               <span>{item.icon}</span><span>{item.label}</span>
             </NavLink>

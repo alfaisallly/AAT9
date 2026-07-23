@@ -56,7 +56,7 @@ export default function Login() {
           </button>
         </form>
         <p style={{ textAlign: 'center', marginTop: '1.5rem', fontSize: '0.78rem', color: '#999' }}>
-          مركزي: admin / admin123 — الكرخ: karkh / karkh123
+          مركزي: admin / admin123 — الكرخ: karkh / karkh123 — مسؤول مديرية: liaison / liaison123
         </p>
       </div>
     </div>

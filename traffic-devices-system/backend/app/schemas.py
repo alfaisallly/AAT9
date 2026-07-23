@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models import BookType, DeviceStatus, DeviceType, DocumentType, MovementType, UserRole
+from app.models import BookType, DeviceStatus, DeviceType, DocumentType, MovementType, SearchType, UserRole
 
 
 class Token(BaseModel):
@@ -153,6 +153,9 @@ class DeviceBase(BaseModel):
 
 class DeviceCreate(DeviceBase):
     documents: List[DeviceDocumentCreate] = []
+    official_book_number: Optional[str] = None
+    book_image_path: Optional[str] = None
+    book_image_filename: Optional[str] = None
 
 
 class DeviceUpdate(BaseModel):
@@ -173,6 +176,9 @@ class DeviceUpdate(BaseModel):
     purchase_date: Optional[date] = None
     received_date: Optional[date] = None
     warranty_expiry: Optional[date] = None
+    official_book_number: Optional[str] = None
+    book_image_path: Optional[str] = None
+    book_image_filename: Optional[str] = None
 
 
 class DeviceResponse(DeviceBase):
@@ -300,3 +306,54 @@ class ReportSummary(BaseModel):
     by_workplace: List[dict]
     by_directorate: List[dict]
     by_status: List[dict]
+
+
+class SearchRequest(BaseModel):
+    search_type: SearchType = SearchType.GENERAL
+    query: str = ""
+    directorate_id: Optional[int] = None
+
+
+class SearchResult(BaseModel):
+    devices: List[DeviceResponse]
+    total: int
+    search_type: SearchType
+    query: str
+
+
+class SearchLogResponse(BaseModel):
+    id: int
+    search_type: SearchType
+    query_value: str
+    directorate_id: Optional[int] = None
+    results_count: int
+    created_at: datetime
+    directorate: Optional[DirectorateResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class AuditLogResponse(BaseModel):
+    id: int
+    action: str
+    entity_type: str
+    entity_id: Optional[int] = None
+    entity_label: Optional[str] = None
+    changes_summary: Optional[str] = None
+    directorate_id: Optional[int] = None
+    official_book_number: Optional[str] = None
+    book_image_path: Optional[str] = None
+    book_image_filename: Optional[str] = None
+    created_at: datetime
+    user: Optional[UserResponse] = None
+    directorate: Optional[DirectorateResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
+class UploadResponse(BaseModel):
+    path: str
+    filename: str
+    url: str

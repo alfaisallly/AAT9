@@ -132,4 +132,15 @@ def seed_database(db: Session) -> None:
             province_id=karkh.province_id if karkh else None,
         ))
 
+    if db.query(User).filter(User.username == "liaison").first() is None:
+        rusafa = db.query(Directorate).filter(Directorate.code == "BGD-R").first()
+        db.add(User(
+            username="liaison",
+            full_name="مسؤول اتصالات مديرية الرصافة",
+            hashed_password=get_password_hash("liaison123"),
+            role=UserRole.LIAISON,
+            directorate_id=rusafa.id if rusafa else None,
+            province_id=rusafa.province_id if rusafa else None,
+        ))
+
     db.commit()

@@ -112,6 +112,47 @@ export const api = {
     downloadFile(`/export/books/${bookId}/pdf`, `book_${bookId}.pdf`),
   exportDashboardPdf: (directorateId) =>
     downloadFile(`/export/dashboard/pdf${buildQuery({ directorate_id: directorateId })}`, 'dashboard_report.pdf'),
+
+  searchDevices: (data) =>
+    request('/search/', { method: 'POST', body: JSON.stringify(data) }),
+
+  getSearchLogs: () => request('/search/logs'),
+  exportSearchLogs: () => downloadFile('/search/logs/export', 'search_log.xlsx'),
+  clearSearchLogs: (saveBefore = true) =>
+    request(`/search/logs?save_before=${saveBefore}`, { method: 'DELETE' }),
+
+  getAuditLogs: (directorateId) =>
+    request(`/audit${buildQuery({ directorate_id: directorateId })}`),
+
+  exportAuditLogs: (directorateId) => {
+    const q = buildQuery({ directorate_id: directorateId });
+    return fetch(`/api/audit/export${q}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    }).then((r) => r.json()).then((data) => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'audit_log.json';
+      a.click();
+    });
+  },
+
+  uploadOfficialBook: async (file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch('/api/uploads/official-book', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: 'فشل الرفع' }));
+      throw new Error(err.detail);
+    }
+    return response.json();
+  },
 };
 
 export const labels = {
@@ -120,6 +161,7 @@ export const labels = {
     admin: 'مدير',
     manager: 'مدير مديرية',
     operator: 'مستخدم اعتيادي',
+    liaison: 'مسؤول المديرية',
   },
   deviceTypes: {
     desktop: 'مكتبي',

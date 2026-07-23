@@ -904,6 +904,27 @@ tr:hover td {
 
 .report-insight p { line-height: 1.8; }
 
+.search-form {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+
+.search-form .form-group { flex: 1; min-width: 200px; }
+
+.book-archive-section {
+  background: #fffbea;
+  border: 1px solid #fdebd0;
+  border-radius: var(--radius);
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.book-archive-section h4 { color: var(--primary); margin-bottom: 0.5rem; }
+
+.liaison-portal .page-tabs { margin-bottom: 1.25rem; }
+
 @media (max-width: 768px) {
     width: 100%;
     position: relative;

@@ -5,13 +5,14 @@ from sqlalchemy.orm import Session, joinedload
 
 from app.auth import get_current_user, require_roles
 from app.database import get_db
-from app.models import Device, DeviceDocument, DeviceModel, DeviceStatus, DeviceType, User, UserRole
+from app.models import AuditAction, Device, DeviceDocument, DeviceModel, DeviceStatus, DeviceType, User, UserRole
 from app.schemas import DeviceCreate, DeviceDocumentCreate, DeviceDocumentResponse, DeviceResponse, DeviceUpdate
+from app.services.audit import log_audit, summarize_changes
 from app.services.scope import apply_directorate_scope, ensure_directorate_access, is_central_user, resolve_directorate_id
 
 router = APIRouter(prefix="/devices", tags=["الأجهزة"])
 
-MANAGE_ROLES = (UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)
+MANAGE_ROLES = (UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.LIAISON, UserRole.OPERATOR)
 DELETE_ROLES = (UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)
 
 
@@ -27,10 +28,20 @@ def _load_device(db: Session, device_id: int) -> Optional[Device]:
     )
 
 
+def _validate_liaison_book(user: User, book_number: Optional[str], book_path: Optional[str]) -> None:
+    if user.role == UserRole.LIAISON:
+        if not book_number or not book_path:
+            raise HTTPException(
+                status_code=400,
+                detail="مسؤول المديرية: يجب أرشفة الكتاب الرسمي (الرقم + صورة) مع كل تعديل",
+            )
+
+
 @router.get("/", response_model=List[DeviceResponse])
 def list_devices(
     province_id: Optional[int] = None,
     directorate_id: Optional[int] = None,
+    asset_number: Optional[str] = None,
     status: Optional[DeviceStatus] = None,
     device_type: Optional[DeviceType] = None,
     search: Optional[str] = None,
@@ -48,6 +59,8 @@ def list_devices(
 
     if province_id:
         query = query.filter(Device.province_id == province_id)
+    if asset_number:
+        query = query.filter(Device.asset_number.ilike(f"%{asset_number}%"))
     if status:
         query = query.filter(Device.status == status)
     if device_type:
@@ -73,6 +86,10 @@ def create_device(
     db: Session = Depends(get_db),
     current_user: User = Depends(require_roles(*MANAGE_ROLES)),
 ):
+    _validate_liaison_book(
+        current_user, device_data.official_book_number, device_data.book_image_path
+    )
+
     directorate_id = resolve_directorate_id(current_user, device_data.directorate_id)
     if not directorate_id:
         raise HTTPException(status_code=400, detail="يجب تحديد المديرية")
@@ -81,7 +98,8 @@ def create_device(
     if db.query(Device).filter(Device.serial_number == device_data.serial_number).first():
         raise HTTPException(status_code=400, detail="الرقم التسلسلي موجود مسبقاً")
 
-    data = device_data.model_dump(exclude={"documents"})
+    meta_fields = {"official_book_number", "book_image_path", "book_image_filename", "documents"}
+    data = device_data.model_dump(exclude=meta_fields)
     data["directorate_id"] = directorate_id
     data["created_by_id"] = current_user.id
 
@@ -91,6 +109,15 @@ def create_device(
 
     for doc in device_data.documents:
         db.add(DeviceDocument(device_id=device.id, created_by_id=current_user.id, **doc.model_dump()))
+
+    log_audit(
+        db, current_user, AuditAction.CREATE, "device", device.id,
+        device.serial_number, f"إضافة جهاز: {device.serial_number}",
+        directorate_id=directorate_id,
+        official_book_number=device_data.official_book_number,
+        book_image_path=device_data.book_image_path,
+        book_image_filename=device_data.book_image_filename,
+    )
 
     db.commit()
     return _load_device(db, device.id)
@@ -117,7 +144,13 @@ def update_device(
         raise HTTPException(status_code=404, detail="الجهاز غير موجود")
     ensure_directorate_access(user, device.directorate_id)
 
-    update_data = device_data.model_dump(exclude_unset=True)
+    _validate_liaison_book(user, device_data.official_book_number, device_data.book_image_path)
+
+    old_data = {c.name: getattr(device, c.name) for c in device.__table__.columns if c.name not in ("id", "created_at", "updated_at")}
+
+    update_data = device_data.model_dump(exclude_unset=True, exclude={
+        "official_book_number", "book_image_path", "book_image_filename"
+    })
     if "directorate_id" in update_data:
         ensure_directorate_access(user, update_data["directorate_id"])
         if not is_central_user(user):
@@ -125,6 +158,16 @@ def update_device(
 
     for key, value in update_data.items():
         setattr(device, key, value)
+
+    log_audit(
+        db, user, AuditAction.UPDATE, "device", device.id,
+        device.serial_number,
+        summarize_changes(old_data, update_data),
+        directorate_id=device.directorate_id,
+        official_book_number=device_data.official_book_number,
+        book_image_path=device_data.book_image_path,
+        book_image_filename=device_data.book_image_filename,
+    )
 
     db.commit()
     return _load_device(db, device_id)
@@ -140,6 +183,12 @@ def delete_device(
     if not device:
         raise HTTPException(status_code=404, detail="الجهاز غير موجود")
     ensure_directorate_access(user, device.directorate_id)
+
+    log_audit(
+        db, user, AuditAction.DELETE, "device", device.id,
+        device.serial_number, f"حذف جهاز: {device.serial_number}",
+        directorate_id=device.directorate_id,
+    )
     db.delete(device)
     db.commit()
     return {"message": "تم حذف الجهاز بنجاح"}

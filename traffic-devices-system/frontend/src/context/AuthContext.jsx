@@ -43,6 +43,7 @@ export function AuthProvider({ children }) {
   };
 
   const isCentral = ['super_admin', 'admin'].includes(user?.role);
+  const isLiaison = user?.role === 'liaison';
   const activeDirectorateId = isCentral ? (selectedDirectorate || null) : user?.directorate_id;
 
   return (
@@ -50,6 +51,7 @@ export function AuthProvider({ children }) {
       user, login, logout, loading,
       isAdmin: user?.role === 'super_admin',
       isCentral,
+      isLiaison,
       isManager: ['super_admin', 'admin', 'manager'].includes(user?.role),
       selectedDirectorate, setSelectedDirectorate,
       activeDirectorateId,

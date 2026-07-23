@@ -7,6 +7,8 @@ import Devices from './pages/Devices';
 import Books from './pages/Books';
 import Users from './pages/Users';
 import Reports from './pages/Reports';
+import Search from './pages/Search';
+import LiaisonPortal from './pages/LiaisonPortal';
 import Brands from './pages/Brands';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -39,6 +41,8 @@ function AppRoutes() {
         }
       >
         <Route index element={<Dashboard />} />
+        <Route path="search" element={<Search />} />
+        <Route path="liaison" element={<LiaisonPortal />} />
         <Route path="devices" element={<Devices />} />
         <Route path="books" element={<Books />} />
         <Route path="reports" element={<Reports />} />
