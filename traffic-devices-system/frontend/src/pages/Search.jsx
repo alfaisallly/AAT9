@@ -1,12 +1,19 @@
 import { useEffect, useState } from 'react';
 import { api, labels, statusBadgeClass } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
 
 const SEARCH_TYPES = [
-  { key: 'asset_number', label: 'الرقم الأميني', icon: '🔢' },
-  { key: 'directorate', label: 'المديرية / الدائرة', icon: '🏛️' },
-  { key: 'general', label: 'بحث عام', icon: '🔍' },
+  { key: 'asset_number', label: 'الرقم الأميني', desc: 'بحث مباشر برقم الأصل' },
+  { key: 'directorate', label: 'المديرية / الدائرة', desc: 'عرض أجهزة مديرية محددة' },
+  { key: 'general', label: 'بحث عام', desc: 'تسلسلي، موقع، مصنع...' },
 ];
+
+const searchTypeLabels = {
+  asset_number: 'رقم أميني',
+  directorate: 'مديرية',
+  general: 'عام',
+};
 
 export default function Search() {
   const { activeDirectorateId } = useAuth();
@@ -48,21 +55,18 @@ export default function Search() {
   const handleExportLog = () => api.exportSearchLogs();
 
   const handleClearLog = async () => {
-    if (!confirm('هل تريد حفظ السجل ثم مسحه؟')) return;
+    if (!confirm('سيتم تصدير السجل ثم مسحه. هل تريد المتابعة؟')) return;
     await api.exportSearchLogs();
     await api.clearSearchLogs(true);
     loadLogs();
-    alert('تم تصدير السجل ومسحه');
   };
 
   return (
     <div className="search-page">
-      <div className="page-header">
-        <div>
-          <h2>🔍 البحث عن الأجهزة</h2>
-          <p className="page-subtitle">بحث بالرقم الأميني أو المديرية مع توثيق سجل البحث</p>
-        </div>
-      </div>
+      <PageHeader
+        title="البحث عن الأجهزة"
+        subtitle="بحث بالرقم الأميني أو المديرية مع توثيق سجل عمليات البحث"
+      />
 
       <div className="search-type-cards">
         {SEARCH_TYPES.map((t) => (
@@ -72,8 +76,8 @@ export default function Search() {
             className={`movement-type-card ${searchType === t.key ? 'active' : ''}`}
             onClick={() => setSearchType(t.key)}
           >
-            <span className="mt-icon">{t.icon}</span>
-            <span>{t.label}</span>
+            <span className="status-option-label">{t.label}</span>
+            <span className="status-option-desc">{t.desc}</span>
           </button>
         ))}
       </div>
@@ -82,16 +86,24 @@ export default function Search() {
         <form onSubmit={handleSearch} className="search-form">
           {searchType === 'directorate' ? (
             <div className="form-group">
-              <label>اختر المديرية / الدائرة</label>
-              <select value={directorateId || activeDirectorateId || ''} onChange={(e) => setDirectorateId(e.target.value)} required>
+              <label htmlFor="search-directorate">اختر المديرية / الدائرة</label>
+              <select
+                id="search-directorate"
+                value={directorateId || activeDirectorateId || ''}
+                onChange={(e) => setDirectorateId(e.target.value)}
+                required
+              >
                 <option value="">اختر المديرية</option>
                 {directorates.map((d) => <option key={d.id} value={d.id}>{d.name_ar}</option>)}
               </select>
             </div>
           ) : (
             <div className="form-group">
-              <label>{searchType === 'asset_number' ? 'الرقم الأميني' : 'كلمة البحث'}</label>
+              <label htmlFor="search-query">
+                {searchType === 'asset_number' ? 'الرقم الأميني' : 'كلمة البحث'}
+              </label>
               <input
+                id="search-query"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder={searchType === 'asset_number' ? 'أدخل الرقم الأميني...' : 'رقم تسلسلي، مصنع، موقع...'}
@@ -107,7 +119,9 @@ export default function Search() {
 
       {results && (
         <div className="card">
-          <h3>نتائج البحث: {results.total} جهاز</h3>
+          <div className="card-header">
+            <h3>نتائج البحث ({results.total})</h3>
+          </div>
           <div className="table-wrapper">
             <table>
               <thead>
@@ -123,7 +137,7 @@ export default function Search() {
               </thead>
               <tbody>
                 {results.devices.length === 0 ? (
-                  <tr><td colSpan="7" className="empty-state">لا توجد نتائج</td></tr>
+                  <tr><td colSpan="7" className="empty-state">لا توجد نتائج مطابقة</td></tr>
                 ) : results.devices.map((d) => (
                   <tr key={d.id}>
                     <td><strong>{d.asset_number || '—'}</strong></td>
@@ -132,7 +146,11 @@ export default function Search() {
                     <td>{d.model?.brand?.name_ar} — {d.model?.name}</td>
                     <td>{d.directorate?.name_ar}</td>
                     <td>{d.workplace || '—'}</td>
-                    <td><span className={`badge ${statusBadgeClass(d.status)}`}>{labels.deviceStatus[d.status] || d.status}</span></td>
+                    <td>
+                      <span className={`badge ${statusBadgeClass(d.status)}`}>
+                        {labels.deviceStatus[d.status] || d.status}
+                      </span>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -142,11 +160,11 @@ export default function Search() {
       )}
 
       <div className="card">
-        <div className="inventory-header">
-          <h3>📋 سجل عمليات البحث</h3>
+        <div className="card-header">
+          <h3>سجل عمليات البحث</h3>
           <div className="btn-group">
-            <button className="btn btn-export btn-sm" onClick={handleExportLog}>💾 حفظ السجل</button>
-            <button className="btn btn-danger btn-sm" onClick={handleClearLog}>🗑️ مسح السجل</button>
+            <button type="button" className="btn btn-export btn-sm" onClick={handleExportLog}>حفظ السجل</button>
+            <button type="button" className="btn btn-danger btn-sm" onClick={handleClearLog}>مسح السجل</button>
           </div>
         </div>
         <div className="table-wrapper">
@@ -156,10 +174,10 @@ export default function Search() {
             </thead>
             <tbody>
               {logs.length === 0 ? (
-                <tr><td colSpan="4" className="empty-state">لا توجد عمليات بحث</td></tr>
+                <tr><td colSpan="4" className="empty-state">لا توجد عمليات بحث مسجّلة</td></tr>
               ) : logs.map((log) => (
                 <tr key={log.id}>
-                  <td>{log.search_type}</td>
+                  <td><span className="badge badge-info">{searchTypeLabels[log.search_type] || log.search_type}</span></td>
                   <td>{log.query_value}</td>
                   <td>{log.results_count}</td>
                   <td>{new Date(log.created_at).toLocaleString('ar-IQ')}</td>

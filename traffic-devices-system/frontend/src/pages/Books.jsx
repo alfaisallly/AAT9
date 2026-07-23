@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
 
 const emptyForm = {
   book_number: '',
@@ -132,13 +133,12 @@ export default function Books() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>أرشيف الكتب الرسمية</h2>
+      <PageHeader title="أرشيف الكتب الرسمية" subtitle="توثيق كتب الاستلام والتسليم الرسمية">
         <div className="btn-group">
-          <button className="btn btn-export" onClick={handleExportExcel}>📊 Excel</button>
-          <button className="btn btn-primary" onClick={openCreate}>+ إضافة كتاب</button>
+          <button type="button" className="btn btn-export" onClick={handleExportExcel}>Excel</button>
+          <button type="button" className="btn btn-primary" onClick={openCreate}>إضافة كتاب</button>
         </div>
-      </div>
+      </PageHeader>
 
       <div className="filters">
         <select value={filters.province_id} onChange={(e) => setFilters({ ...filters, province_id: e.target.value })}>

@@ -13,9 +13,10 @@ export default function DirectorateSelector() {
   if (!isCentral) return null;
 
   return (
-    <div className="directorate-selector">
-      <label>🏛️ نطاق العرض:</label>
+    <div className="scope-selector">
+      <label htmlFor="directorate-scope">نطاق العرض</label>
       <select
+        id="directorate-scope"
         value={selectedDirectorate}
         onChange={(e) => setSelectedDirectorate(e.target.value)}
       >

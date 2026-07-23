@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 export default function Dashboard() {
   const { activeDirectorateId, isCentral } = useAuth();
@@ -10,19 +12,19 @@ export default function Dashboard() {
     api.getStats(activeDirectorateId || undefined).then(setStats);
   }, [activeDirectorateId]);
 
-  if (!stats) return <div>جاري التحميل...</div>;
+  if (!stats) return <LoadingSpinner label="جاري تحميل لوحة التحكم..." />;
 
   return (
-    <div>
-      <div className="page-header">
-        <div>
-          <h2>{isCentral && !activeDirectorateId ? 'الموقف الموحد المركزي' : 'لوحة التحكم'}</h2>
-          <p className="page-subtitle">{stats.scope}</p>
-        </div>
+    <div className="dashboard-page">
+      <PageHeader
+        title={isCentral && !activeDirectorateId ? 'الموقف الموحد المركزي' : 'لوحة التحكم'}
+        subtitle={stats.scope}
+        badge="نظرة عامة"
+      >
         <button className="btn btn-print" onClick={() => api.exportDashboardPdf(activeDirectorateId)}>
-          📄 تصدير PDF
+          تصدير PDF
         </button>
-      </div>
+      </PageHeader>
 
       <div className="readiness-banner">
         <div className="readiness-info">
@@ -33,7 +35,7 @@ export default function Dashboard() {
           <div className="readiness-fill" style={{ width: `${stats.readiness_ratio}%` }} />
         </div>
         <div className="readiness-detail">
-          {stats.working_devices} يصلح للعمل / {stats.consumed_devices} مستهلك
+          {stats.working_devices} يصلح للعمل · {stats.consumed_devices} مستهلك
         </div>
       </div>
 
@@ -46,37 +48,45 @@ export default function Dashboard() {
 
       <div className="dashboard-grid">
         <div className="card">
-          <h3>حسب النوع</h3>
-          <table><tbody>
-            {Object.entries(stats.devices_by_type).map(([t, c]) => (
-              <tr key={t}><td>{labels.deviceTypes[t]}</td><td><strong>{c}</strong></td></tr>
-            ))}
-          </tbody></table>
+          <div className="card-header"><h3>حسب النوع</h3></div>
+          <div className="table-wrapper">
+            <table><tbody>
+              {Object.entries(stats.devices_by_type).map(([t, c]) => (
+                <tr key={t}><td>{labels.deviceTypes[t]}</td><td><strong>{c}</strong></td></tr>
+              ))}
+            </tbody></table>
+          </div>
         </div>
         <div className="card">
-          <h3>حسب الشركة المصنعة</h3>
-          <table><tbody>
-            {stats.devices_by_brand.map((b) => (
-              <tr key={b.brand}><td>{b.brand}</td><td><strong>{b.count}</strong></td></tr>
-            ))}
-          </tbody></table>
+          <div className="card-header"><h3>حسب الشركة المصنعة</h3></div>
+          <div className="table-wrapper">
+            <table><tbody>
+              {stats.devices_by_brand.map((b) => (
+                <tr key={b.brand}><td>{b.brand}</td><td><strong>{b.count}</strong></td></tr>
+              ))}
+            </tbody></table>
+          </div>
         </div>
         <div className="card">
-          <h3>حسب مكان العمل</h3>
-          <table><tbody>
-            {stats.devices_by_workplace.map((w) => (
-              <tr key={w.workplace}><td>{w.workplace}</td><td><strong>{w.count}</strong></td></tr>
-            ))}
-          </tbody></table>
+          <div className="card-header"><h3>حسب مكان العمل</h3></div>
+          <div className="table-wrapper">
+            <table><tbody>
+              {stats.devices_by_workplace.map((w) => (
+                <tr key={w.workplace}><td>{w.workplace}</td><td><strong>{w.count}</strong></td></tr>
+              ))}
+            </tbody></table>
+          </div>
         </div>
         {isCentral && !activeDirectorateId && (
           <div className="card">
-            <h3>حسب المديرية</h3>
-            <table><tbody>
-              {stats.devices_by_directorate.map((d) => (
-                <tr key={d.directorate}><td>{d.directorate}</td><td><strong>{d.count}</strong></td></tr>
-              ))}
-            </tbody></table>
+            <div className="card-header"><h3>حسب المديرية</h3></div>
+            <div className="table-wrapper">
+              <table><tbody>
+                {stats.devices_by_directorate.map((d) => (
+                  <tr key={d.directorate}><td>{d.directorate}</td><td><strong>{d.count}</strong></td></tr>
+                ))}
+              </tbody></table>
+            </div>
           </div>
         )}
       </div>

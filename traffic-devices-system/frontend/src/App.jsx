@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Layout from './components/Layout';
 import Login from './pages/Login';
+import LoadingSpinner from './components/ui/LoadingSpinner';
 import Dashboard from './pages/Dashboard';
 import Devices from './pages/Devices';
 import Books from './pages/Books';
@@ -14,7 +15,7 @@ import Brands from './pages/Brands';
 function ProtectedRoute({ children, adminOnly = false }) {
   const { user, loading, isAdmin } = useAuth();
 
-  if (loading) return <div className="login-page">جاري التحميل...</div>;
+  if (loading) return <div className="login-page"><LoadingSpinner /></div>;
   if (!user) return <Navigate to="/login" replace />;
   if (adminOnly && !isAdmin) return <Navigate to="/" replace />;
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
 
 export default function Brands() {
   const { isManager } = useAuth();
@@ -52,17 +53,14 @@ export default function Brands() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>الشركات والموديلات</h2>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          {isManager && (
-            <>
-              <button className="btn btn-secondary" onClick={() => { setError(''); setShowBrandModal(true); }}>+ شركة جديدة</button>
-              <button className="btn btn-primary" onClick={() => { setError(''); setShowModelModal(true); }}>+ موديل جديد</button>
-            </>
-          )}
-        </div>
-      </div>
+      <PageHeader title="الشركات والموديلات" subtitle="إدارة الشركات المصنعة وموديلات الأجهزة">
+        {isManager && (
+          <div className="btn-group">
+            <button type="button" className="btn btn-secondary" onClick={() => { setError(''); setShowBrandModal(true); }}>شركة جديدة</button>
+            <button type="button" className="btn btn-primary" onClick={() => { setError(''); setShowModelModal(true); }}>موديل جديد</button>
+          </div>
+        )}
+      </PageHeader>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '1.5rem' }}>
         <div className="card">

@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api, labels, statusBadgeClass } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
 import DeviceForm, { deviceToForm, emptyDeviceForm, formToPayload } from '../components/devices/DeviceForm';
 import DeviceDetailPanel, { DeviceCard } from '../components/devices/DeviceDetailPanel';
 import InventoryPanel from '../components/devices/InventoryPanel';
 
 const PAGE_TABS = [
-  { id: 'list', label: 'قائمة الأجهزة', icon: '📋' },
-  { id: 'add', label: 'إدخال جهاز', icon: '➕' },
-  { id: 'inventory', label: 'مخزن الحركات', icon: '📦' },
+  { id: 'list', label: 'قائمة الأجهزة' },
+  { id: 'add', label: 'إدخال جهاز' },
+  { id: 'inventory', label: 'مخزن الحركات' },
 ];
 
 export default function Devices() {
@@ -100,19 +101,18 @@ export default function Devices() {
 
   return (
     <div className="devices-page">
-      <div className="page-header">
-        <div>
-          <h2>إدارة مخزن الأجهزة</h2>
-          <p className="page-subtitle">إدارة شاملة للأجهزة — إدخال، عرض، وتتبع الحركات</p>
-        </div>
+      <PageHeader
+        title="مخزن الأجهزة"
+        subtitle="إدارة شاملة للأجهزة — إدخال، عرض، وتتبع الحركات"
+      >
         {activeTab === 'list' && (
           <div className="btn-group">
-            <button className="btn btn-export" onClick={() => api.exportDevicesExcel(exportParams)}>📊 Excel</button>
-            <button className="btn btn-print" onClick={() => api.exportDevicesPdf(exportParams)}>📄 PDF</button>
-            <button className="btn btn-primary" onClick={openCreate}>+ إدخال جهاز</button>
+            <button type="button" className="btn btn-export" onClick={() => api.exportDevicesExcel(exportParams)}>Excel</button>
+            <button type="button" className="btn btn-print" onClick={() => api.exportDevicesPdf(exportParams)}>PDF</button>
+            <button type="button" className="btn btn-primary" onClick={openCreate}>إدخال جهاز</button>
           </div>
         )}
-      </div>
+      </PageHeader>
 
       <div className="page-tabs">
         {PAGE_TABS.map((tab) => (
@@ -122,8 +122,7 @@ export default function Devices() {
             className={`page-tab ${activeTab === tab.id ? 'active' : ''}`}
             onClick={() => { setActiveTab(tab.id); if (tab.id === 'add' && !editing) resetForm(); }}
           >
-            <span>{tab.icon}</span>
-            <span>{tab.label}</span>
+            {tab.label}
           </button>
         ))}
       </div>
@@ -139,7 +138,7 @@ export default function Devices() {
           <div className="list-toolbar">
             <div className="filters">
               <input
-                placeholder="🔍 بحث (تسلسلي، أصل، موقع، قسم، مسؤول)"
+                placeholder="بحث: تسلسلي، رقم أميني، موقع، قسم، مسؤول..."
                 value={filters.search}
                 onChange={(e) => setFilters({ ...filters, search: e.target.value })}
               />
@@ -219,7 +218,7 @@ export default function Devices() {
       {activeTab === 'add' && (
         <div className="card device-form-card">
           <div className="device-form-header">
-            <h3>{editing ? '✏️ تعديل بيانات الجهاز' : '➕ إدخال جهاز جديد للمخزن'}</h3>
+            <h3>{editing ? 'تعديل بيانات الجهاز' : 'إدخال جهاز جديد للمخزن'}</h3>
             {editing && <span className="badge badge-info">تعديل: {editing.serial_number}</span>}
           </div>
           <DeviceForm

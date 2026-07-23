@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
+import PageHeader from '../components/ui/PageHeader';
 
 const emptyForm = {
   username: '',
@@ -84,10 +85,9 @@ export default function Users() {
 
   return (
     <div>
-      <div className="page-header">
-        <h2>إدارة المستخدمين</h2>
-        <button className="btn btn-primary" onClick={openCreate}>+ إضافة مستخدم</button>
-      </div>
+      <PageHeader title="إدارة المستخدمين" subtitle="إضافة وتعديل حسابات النظام والصلاحيات">
+        <button type="button" className="btn btn-primary" onClick={openCreate}>إضافة مستخدم</button>
+      </PageHeader>
 
       <div className="card">
         <div className="table-wrapper">

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
 import { useAuth } from '../context/AuthContext';
+import PageHeader from '../components/ui/PageHeader';
 import DeviceForm, { deviceToForm, emptyDeviceForm, formToPayload } from '../components/devices/DeviceForm';
 import BookArchiveUpload, { getBookMeta } from '../components/devices/BookArchiveUpload';
 
@@ -56,7 +57,7 @@ export default function LiaisonPortal() {
       setBookNumber('');
       setBookFile(null);
       loadData();
-      alert('تم الحفظ وتوثيق العملية');
+      setTab('devices');
     } catch (err) {
       setError(err.message);
     }
@@ -72,27 +73,32 @@ export default function LiaisonPortal() {
 
   return (
     <div className="liaison-portal">
-      <div className="page-header">
-        <div>
-          <h2>🏛️ واجهة مسؤول المديرية</h2>
-          <p className="page-subtitle">{user?.directorate?.name_ar || 'مديريتك'} — إدارة وتحديث أجهزة المديرية</p>
-        </div>
-      </div>
+      <PageHeader
+        title="واجهة مسؤول المديرية"
+        subtitle={`${user?.directorate?.name_ar || 'مديريتك'} — إدارة وتحديث أجهزة المديرية مع توثيق الكتب الرسمية`}
+        badge="مسؤول المديرية"
+      />
 
       <div className="page-tabs">
         <button type="button" className={`page-tab ${tab === 'devices' ? 'active' : ''}`} onClick={() => setTab('devices')}>
-          📋 أجهزة المديرية ({devices.length})
+          أجهزة المديرية ({devices.length})
         </button>
         <button type="button" className={`page-tab ${tab === 'entry' ? 'active' : ''}`} onClick={() => { setTab('entry'); setEditing(null); }}>
-          ➕ إدخال / تعديل
+          إدخال / تعديل
         </button>
         <button type="button" className={`page-tab ${tab === 'audit' ? 'active' : ''}`} onClick={() => setTab('audit')}>
-          📜 سجل التعديلات
+          سجل التعديلات
         </button>
       </div>
 
       {tab === 'devices' && (
         <div className="card">
+          <div className="card-header">
+            <h3>قائمة الأجهزة</h3>
+            <button type="button" className="btn btn-primary btn-sm" onClick={() => { setTab('entry'); setEditing(null); }}>
+              إضافة جهاز
+            </button>
+          </div>
           <div className="table-wrapper">
             <table>
               <thead>
@@ -101,14 +107,16 @@ export default function LiaisonPortal() {
                 </tr>
               </thead>
               <tbody>
-                {devices.map((d) => (
+                {devices.length === 0 ? (
+                  <tr><td colSpan="6" className="empty-state">لا توجد أجهزة — ابدأ بإضافة جهاز جديد</td></tr>
+                ) : devices.map((d) => (
                   <tr key={d.id}>
-                    <td>{d.asset_number || '—'}</td>
+                    <td><strong>{d.asset_number || '—'}</strong></td>
                     <td>{d.serial_number}</td>
                     <td>{labels.deviceTypes[d.device_type]}</td>
                     <td>{d.workplace || '—'}</td>
-                    <td>{labels.deviceStatus[d.status]}</td>
-                    <td><button className="btn btn-secondary btn-sm" onClick={() => openEdit(d)}>تعديل</button></td>
+                    <td><span className="badge badge-default">{labels.deviceStatus[d.status]}</span></td>
+                    <td><button type="button" className="btn btn-secondary btn-sm" onClick={() => openEdit(d)}>تعديل</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -118,35 +126,39 @@ export default function LiaisonPortal() {
       )}
 
       {tab === 'entry' && (
-        <div className="card">
-          <h3>{editing ? `تعديل: ${editing.serial_number}` : 'إدخال جهاز جديد'}</h3>
-          {error && <div className="error-message">{error}</div>}
-          <BookArchiveUpload
-            bookNumber={bookNumber}
-            setBookNumber={setBookNumber}
-            bookFile={bookFile}
-            setBookFile={setBookFile}
-            required
-          />
-          <DeviceForm
-            form={{ ...form, directorate_id: dirId || form.directorate_id }}
-            setForm={setForm}
-            onSubmit={handleSubmit}
-            onCancel={() => { setEditing(null); setTab('devices'); }}
-            editing={editing}
-            error=""
-            provinces={provinces}
-            models={models}
-            directorates={directorates.filter((d) => !dirId || d.id === dirId)}
-          />
+        <div className="card device-form-card">
+          <div className="device-form-header">
+            <h3>{editing ? `تعديل: ${editing.serial_number}` : 'إدخال جهاز جديد'}</h3>
+          </div>
+          {error && <div className="error-message" style={{ margin: '1rem 1.35rem 0' }}>{error}</div>}
+          <div style={{ padding: '1.35rem' }}>
+            <BookArchiveUpload
+              bookNumber={bookNumber}
+              setBookNumber={setBookNumber}
+              bookFile={bookFile}
+              setBookFile={setBookFile}
+              required
+            />
+            <DeviceForm
+              form={{ ...form, directorate_id: dirId || form.directorate_id }}
+              setForm={setForm}
+              onSubmit={handleSubmit}
+              onCancel={() => { setEditing(null); setTab('devices'); }}
+              editing={editing}
+              error=""
+              provinces={provinces}
+              models={models}
+              directorates={directorates.filter((d) => !dirId || d.id === dirId)}
+            />
+          </div>
         </div>
       )}
 
       {tab === 'audit' && (
         <div className="card">
-          <div className="inventory-header">
-            <h3>📜 سجل التعديلات الموثّقة</h3>
-            <button className="btn btn-export btn-sm" onClick={() => api.exportAuditLogs(dirId)}>💾 تصدير</button>
+          <div className="card-header">
+            <h3>سجل التعديلات الموثّقة</h3>
+            <button type="button" className="btn btn-export btn-sm" onClick={() => api.exportAuditLogs(dirId)}>تصدير Excel</button>
           </div>
           <div className="table-wrapper">
             <table>
@@ -157,9 +169,11 @@ export default function LiaisonPortal() {
                 </tr>
               </thead>
               <tbody>
-                {auditLogs.map((log) => (
+                {auditLogs.length === 0 ? (
+                  <tr><td colSpan="7" className="empty-state">لا توجد تعديلات مسجّلة</td></tr>
+                ) : auditLogs.map((log) => (
                   <tr key={log.id}>
-                    <td>{log.action}</td>
+                    <td><span className="badge badge-info">{log.action}</span></td>
                     <td>{log.entity_label}</td>
                     <td>{log.changes_summary}</td>
                     <td>{log.user?.full_name}</td>
