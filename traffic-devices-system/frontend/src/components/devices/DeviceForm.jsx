@@ -10,11 +10,14 @@ import {
 
 export const emptyDeviceForm = {
   serial_number: '',
+  manufacturer_serial: '',
   asset_number: '',
   model_id: '',
   province_id: '',
+  directorate_id: '',
   status: 'working',
   device_type: 'mobile',
+  workplace: '',
   location: '',
   department: '',
   assigned_to: '',
@@ -23,6 +26,7 @@ export const emptyDeviceForm = {
   purchase_date: '',
   received_date: '',
   warranty_expiry: '',
+  documents: [],
 };
 
 export default function DeviceForm({
@@ -34,6 +38,7 @@ export default function DeviceForm({
   error,
   provinces,
   models,
+  directorates,
 }) {
   const [activeSection, setActiveSection] = useState('identity');
   const filteredModels = models.filter((m) => !form.device_type || m.device_type === form.device_type);
@@ -61,6 +66,14 @@ export default function DeviceForm({
               required
             />
             <span className="field-hint">رقم فريد لكل جهاز</span>
+          </div>
+          <div className="form-group">
+            <label>الرقم المصنع *</label>
+            <input
+              value={form.manufacturer_serial}
+              onChange={(e) => update('manufacturer_serial', e.target.value)}
+              placeholder="الرقم من الشركة المصنعة"
+            />
           </div>
           <div className="form-group">
             <label>رقم الأصل</label>
@@ -98,13 +111,29 @@ export default function DeviceForm({
               {provinces.map((p) => <option key={p.id} value={p.id}>{p.name_ar}</option>)}
             </select>
           </div>
+          <div className="form-group">
+            <label>المديرية *</label>
+            <select value={form.directorate_id} onChange={(e) => update('directorate_id', e.target.value)} required>
+              <option value="">اختر المديرية</option>
+              {directorates.map((d) => <option key={d.id} value={d.id}>{d.name_ar}</option>)}
+            </select>
+          </div>
         </div>
       </FormSection>
 
       <FormSection title="الموقع والتخصيص" icon="📍" active={activeSection === 'location'}>
         <div className="form-grid">
           <div className="form-group">
-            <label>الموقع / المقر</label>
+            <label>مكان العمل *</label>
+            <input
+              value={form.workplace}
+              onChange={(e) => update('workplace', e.target.value)}
+              placeholder="مثال: شعبة اتصالات الكرخ"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label>الموقع التفصيلي</label>
             <input
               value={form.location}
               onChange={(e) => update('location', e.target.value)}
@@ -175,6 +204,22 @@ export default function DeviceForm({
         </div>
       </FormSection>
 
+      <FormSection title="الأوليات الورقية" icon="📄" active={activeSection === 'documents'}>
+        <p className="field-hint" style={{ marginBottom: '1rem' }}>
+          من الاشتباك (التمليك) لغاية الإتلاف — سجل جميع الكتب والمستندات الرسمية
+        </p>
+        {!editing && (
+          <p className="field-hint">يمكن إضافة الوثائق بعد حفظ الجهاز من لوحة التفاصيل</p>
+        )}
+        {editing && form.documents?.length > 0 && (
+          <table><tbody>
+            {form.documents.map((doc, i) => (
+              <tr key={i}><td>{labels.documentTypes[doc.document_type]}</td><td>{doc.document_number}</td><td>{doc.document_date}</td></tr>
+            ))}
+          </tbody></table>
+        )}
+      </FormSection>
+
       <div className="form-actions device-form-actions">
         <button type="submit" className="btn btn-primary">
           {editing ? '💾 حفظ التعديلات' : '➕ إضافة الجهاز'}
@@ -188,11 +233,14 @@ export default function DeviceForm({
 export function deviceToForm(device) {
   return {
     serial_number: device.serial_number,
+    manufacturer_serial: device.manufacturer_serial || '',
     asset_number: device.asset_number || '',
     model_id: device.model_id,
     province_id: device.province_id,
-    status: device.status,
+    directorate_id: device.directorate_id || '',
+    status: device.status === 'consumed_non_disabled' || device.status === 'consumed_disabled' ? 'consumed' : device.status,
     device_type: device.device_type,
+    workplace: device.workplace || '',
     location: device.location || '',
     department: device.department || '',
     assigned_to: device.assigned_to || '',
@@ -201,15 +249,20 @@ export function deviceToForm(device) {
     purchase_date: device.purchase_date || '',
     received_date: device.received_date || '',
     warranty_expiry: device.warranty_expiry || '',
+    documents: device.documents || [],
   };
 }
 
 export function formToPayload(form) {
+  const { documents, ...rest } = form;
   return {
-    ...form,
+    ...rest,
     model_id: Number(form.model_id),
     province_id: Number(form.province_id),
+    directorate_id: Number(form.directorate_id),
+    manufacturer_serial: form.manufacturer_serial || null,
     asset_number: form.asset_number || null,
+    workplace: form.workplace || null,
     location: form.location || null,
     department: form.department || null,
     assigned_to: form.assigned_to || null,
@@ -218,5 +271,6 @@ export function formToPayload(form) {
     purchase_date: form.purchase_date || null,
     received_date: form.received_date || null,
     warranty_expiry: form.warranty_expiry || null,
+    documents: documents || [],
   };
 }

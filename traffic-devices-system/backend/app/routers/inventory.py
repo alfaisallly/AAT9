@@ -42,7 +42,7 @@ def list_movements(
 def create_movement(
     data: InventoryMovementCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
+    current_user: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
 ):
     device = db.query(Device).filter(Device.id == data.device_id).first()
     if not device:
@@ -83,7 +83,7 @@ def get_movement(
 def delete_movement(
     movement_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)),
 ):
     movement = db.query(InventoryMovement).filter(InventoryMovement.id == movement_id).first()
     if not movement:

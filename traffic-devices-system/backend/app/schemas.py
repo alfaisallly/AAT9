@@ -3,10 +3,9 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from app.models import BookType, DeviceStatus, DeviceType, MovementType, UserRole
+from app.models import BookType, DeviceStatus, DeviceType, DocumentType, MovementType, UserRole
 
 
-# Auth
 class Token(BaseModel):
     access_token: str
     token_type: str
@@ -17,13 +16,36 @@ class LoginRequest(BaseModel):
     password: str
 
 
-# User
+class ProvinceResponse(BaseModel):
+    id: int
+    name_ar: str
+    code: str
+    is_baghdad: bool
+
+    class Config:
+        from_attributes = True
+
+
+class DirectorateResponse(BaseModel):
+    id: int
+    name_ar: str
+    code: str
+    directorate_type: str
+    province_id: Optional[int] = None
+    is_active: bool
+    province: Optional[ProvinceResponse] = None
+
+    class Config:
+        from_attributes = True
+
+
 class UserBase(BaseModel):
     username: str
     full_name: str
     email: Optional[str] = None
     role: UserRole = UserRole.OPERATOR
     province_id: Optional[int] = None
+    directorate_id: Optional[int] = None
     is_active: bool = True
 
 
@@ -36,6 +58,7 @@ class UserUpdate(BaseModel):
     email: Optional[str] = None
     role: Optional[UserRole] = None
     province_id: Optional[int] = None
+    directorate_id: Optional[int] = None
     is_active: Optional[bool] = None
     password: Optional[str] = None
 
@@ -43,23 +66,12 @@ class UserUpdate(BaseModel):
 class UserResponse(UserBase):
     id: int
     created_at: datetime
+    directorate: Optional[DirectorateResponse] = None
 
     class Config:
         from_attributes = True
 
 
-# Province
-class ProvinceResponse(BaseModel):
-    id: int
-    name_ar: str
-    code: str
-    is_baghdad: bool
-
-    class Config:
-        from_attributes = True
-
-
-# Brand
 class BrandBase(BaseModel):
     name: str
     name_ar: str
@@ -77,7 +89,6 @@ class BrandResponse(BrandBase):
         from_attributes = True
 
 
-# Device Model
 class DeviceModelBase(BaseModel):
     brand_id: int
     name: str
@@ -97,14 +108,39 @@ class DeviceModelResponse(DeviceModelBase):
         from_attributes = True
 
 
-# Device
+class DeviceDocumentBase(BaseModel):
+    document_type: DocumentType
+    document_number: str
+    document_date: date
+    subject: Optional[str] = None
+    from_entity: Optional[str] = None
+    to_entity: Optional[str] = None
+    notes: Optional[str] = None
+
+
+class DeviceDocumentCreate(DeviceDocumentBase):
+    pass
+
+
+class DeviceDocumentResponse(DeviceDocumentBase):
+    id: int
+    device_id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
 class DeviceBase(BaseModel):
     serial_number: str
+    manufacturer_serial: Optional[str] = None
     asset_number: Optional[str] = None
     model_id: int
     province_id: int
+    directorate_id: Optional[int] = None
     status: DeviceStatus = DeviceStatus.WORKING
     device_type: DeviceType
+    workplace: Optional[str] = None
     location: Optional[str] = None
     department: Optional[str] = None
     assigned_to: Optional[str] = None
@@ -116,16 +152,19 @@ class DeviceBase(BaseModel):
 
 
 class DeviceCreate(DeviceBase):
-    pass
+    documents: List[DeviceDocumentCreate] = []
 
 
 class DeviceUpdate(BaseModel):
     serial_number: Optional[str] = None
+    manufacturer_serial: Optional[str] = None
     asset_number: Optional[str] = None
     model_id: Optional[int] = None
     province_id: Optional[int] = None
+    directorate_id: Optional[int] = None
     status: Optional[DeviceStatus] = None
     device_type: Optional[DeviceType] = None
+    workplace: Optional[str] = None
     location: Optional[str] = None
     department: Optional[str] = None
     assigned_to: Optional[str] = None
@@ -142,22 +181,24 @@ class DeviceResponse(DeviceBase):
     updated_at: datetime
     model: Optional[DeviceModelResponse] = None
     province: Optional[ProvinceResponse] = None
+    directorate: Optional[DirectorateResponse] = None
+    documents: List[DeviceDocumentResponse] = []
 
     class Config:
         from_attributes = True
 
 
-# Inventory Movement
 class InventoryMovementBase(BaseModel):
     device_id: int
     movement_type: MovementType
     movement_date: date
     province_id: int
+    directorate_id: Optional[int] = None
     from_entity: Optional[str] = None
     to_entity: Optional[str] = None
     reference_number: Optional[str] = None
-    previous_status: Optional[DeviceStatus] = None
-    new_status: Optional[DeviceStatus] = None
+    previous_status: Optional[str] = None
+    new_status: Optional[str] = None
     notes: Optional[str] = None
 
 
@@ -170,12 +211,12 @@ class InventoryMovementResponse(InventoryMovementBase):
     created_at: datetime
     device: Optional[DeviceResponse] = None
     province: Optional[ProvinceResponse] = None
+    directorate: Optional[DirectorateResponse] = None
 
     class Config:
         from_attributes = True
 
 
-# Official Book
 class BookDeviceItemBase(BaseModel):
     device_id: int
     quantity: int = 1
@@ -195,6 +236,7 @@ class OfficialBookBase(BaseModel):
     book_type: BookType
     book_date: date
     province_id: int
+    directorate_id: Optional[int] = None
     subject: str
     from_entity: str
     to_entity: str
@@ -210,6 +252,7 @@ class OfficialBookUpdate(BaseModel):
     book_type: Optional[BookType] = None
     book_date: Optional[date] = None
     province_id: Optional[int] = None
+    directorate_id: Optional[int] = None
     subject: Optional[str] = None
     from_entity: Optional[str] = None
     to_entity: Optional[str] = None
@@ -221,20 +264,39 @@ class OfficialBookResponse(OfficialBookBase):
     id: int
     created_at: datetime
     province: Optional[ProvinceResponse] = None
+    directorate: Optional[DirectorateResponse] = None
     device_items: List[BookDeviceItemResponse] = []
 
     class Config:
         from_attributes = True
 
 
-# Dashboard
 class DashboardStats(BaseModel):
+    scope: str
+    directorate_name: Optional[str] = None
     total_devices: int
     working_devices: int
-    consumed_non_disabled: int
-    consumed_disabled: int
+    consumed_devices: int
     total_books: int
     receipt_books: int
     delivery_books: int
     devices_by_type: dict
-    devices_by_province: List[dict]
+    devices_by_workplace: List[dict]
+    devices_by_brand: List[dict]
+    devices_by_directorate: List[dict]
+    readiness_ratio: float
+
+
+class ReportSummary(BaseModel):
+    title: str
+    scope: str
+    generated_at: datetime
+    total_devices: int
+    working: int
+    consumed: int
+    readiness_percent: float
+    by_type: List[dict]
+    by_brand: List[dict]
+    by_workplace: List[dict]
+    by_directorate: List[dict]
+    by_status: List[dict]

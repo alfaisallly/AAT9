@@ -1,107 +1,84 @@
 import { useEffect, useState } from 'react';
 import { api, labels } from '../api';
+import { useAuth } from '../context/AuthContext';
 
 export default function Dashboard() {
+  const { activeDirectorateId, isCentral } = useAuth();
   const [stats, setStats] = useState(null);
-  const [provinces, setProvinces] = useState([]);
-  const [provinceId, setProvinceId] = useState('');
 
   useEffect(() => {
-    api.getProvinces().then(setProvinces);
-  }, []);
-
-  useEffect(() => {
-    api.getStats(provinceId || undefined).then(setStats);
-  }, [provinceId]);
+    api.getStats(activeDirectorateId || undefined).then(setStats);
+  }, [activeDirectorateId]);
 
   if (!stats) return <div>جاري التحميل...</div>;
-
-  const handleExportPdf = async () => {
-    try {
-      await api.exportDashboardPdf(provinceId || undefined);
-    } catch (err) {
-      alert(err.message);
-    }
-  };
 
   return (
     <div>
       <div className="page-header">
-        <h2>لوحة التحكم</h2>
-        <div className="btn-group">
-          <select value={provinceId} onChange={(e) => setProvinceId(e.target.value)}>
-            <option value="">جميع المحافظات</option>
-            {provinces.map((p) => (
-              <option key={p.id} value={p.id}>{p.name_ar}</option>
+        <div>
+          <h2>{isCentral && !activeDirectorateId ? 'الموقف الموحد المركزي' : 'لوحة التحكم'}</h2>
+          <p className="page-subtitle">{stats.scope}</p>
+        </div>
+        <button className="btn btn-print" onClick={() => api.exportDashboardPdf(activeDirectorateId)}>
+          📄 تصدير PDF
+        </button>
+      </div>
+
+      <div className="readiness-banner">
+        <div className="readiness-info">
+          <span>نسبة الجاهزية</span>
+          <strong>{stats.readiness_ratio}%</strong>
+        </div>
+        <div className="readiness-bar">
+          <div className="readiness-fill" style={{ width: `${stats.readiness_ratio}%` }} />
+        </div>
+        <div className="readiness-detail">
+          {stats.working_devices} يصلح للعمل / {stats.consumed_devices} مستهلك
+        </div>
+      </div>
+
+      <div className="stats-grid">
+        <div className="stat-card accent"><h3>إجمالي الأجهزة</h3><div className="value">{stats.total_devices}</div></div>
+        <div className="stat-card success"><h3>{labels.deviceStatus.working}</h3><div className="value">{stats.working_devices}</div></div>
+        <div className="stat-card danger"><h3>{labels.deviceStatus.consumed}</h3><div className="value">{stats.consumed_devices}</div></div>
+        <div className="stat-card"><h3>الكتب الرسمية</h3><div className="value">{stats.total_books}</div></div>
+      </div>
+
+      <div className="dashboard-grid">
+        <div className="card">
+          <h3>حسب النوع</h3>
+          <table><tbody>
+            {Object.entries(stats.devices_by_type).map(([t, c]) => (
+              <tr key={t}><td>{labels.deviceTypes[t]}</td><td><strong>{c}</strong></td></tr>
             ))}
-          </select>
-          <button className="btn btn-print" onClick={handleExportPdf}>📄 تصدير PDF</button>
+          </tbody></table>
         </div>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card accent">
-          <h3>إجمالي الأجهزة</h3>
-          <div className="value">{stats.total_devices}</div>
-        </div>
-        <div className="stat-card success">
-          <h3>{labels.deviceStatus.working}</h3>
-          <div className="value">{stats.working_devices}</div>
-        </div>
-        <div className="stat-card warning">
-          <h3>{labels.deviceStatus.consumed_non_disabled}</h3>
-          <div className="value">{stats.consumed_non_disabled}</div>
-        </div>
-        <div className="stat-card danger">
-          <h3>{labels.deviceStatus.consumed_disabled}</h3>
-          <div className="value">{stats.consumed_disabled}</div>
-        </div>
-      </div>
-
-      <div className="stats-grid">
-        <div className="stat-card">
-          <h3>إجمالي الكتب الرسمية</h3>
-          <div className="value">{stats.total_books}</div>
-        </div>
-        <div className="stat-card">
-          <h3>كتب {labels.bookTypes.receipt}</h3>
-          <div className="value">{stats.receipt_books}</div>
-        </div>
-        <div className="stat-card">
-          <h3>كتب {labels.bookTypes.delivery}</h3>
-          <div className="value">{stats.delivery_books}</div>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
         <div className="card">
-          <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>الأجهزة حسب النوع</h3>
-          <table>
-            <tbody>
-              {Object.entries(stats.devices_by_type).map(([type, count]) => (
-                <tr key={type}>
-                  <td>{labels.deviceTypes[type]}</td>
-                  <td><strong>{count}</strong></td>
-                </tr>
+          <h3>حسب الشركة المصنعة</h3>
+          <table><tbody>
+            {stats.devices_by_brand.map((b) => (
+              <tr key={b.brand}><td>{b.brand}</td><td><strong>{b.count}</strong></td></tr>
+            ))}
+          </tbody></table>
+        </div>
+        <div className="card">
+          <h3>حسب مكان العمل</h3>
+          <table><tbody>
+            {stats.devices_by_workplace.map((w) => (
+              <tr key={w.workplace}><td>{w.workplace}</td><td><strong>{w.count}</strong></td></tr>
+            ))}
+          </tbody></table>
+        </div>
+        {isCentral && !activeDirectorateId && (
+          <div className="card">
+            <h3>حسب المديرية</h3>
+            <table><tbody>
+              {stats.devices_by_directorate.map((d) => (
+                <tr key={d.directorate}><td>{d.directorate}</td><td><strong>{d.count}</strong></td></tr>
               ))}
-            </tbody>
-          </table>
-        </div>
-        <div className="card">
-          <h3 style={{ marginBottom: '1rem', color: 'var(--primary)' }}>الأجهزة حسب المحافظة</h3>
-          <div className="table-wrapper">
-            <table>
-              <tbody>
-                {stats.devices_by_province.map((item) => (
-                  <tr key={item.province}>
-                    <td>{item.province}</td>
-                    <td><strong>{item.count}</strong></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            </tbody></table>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

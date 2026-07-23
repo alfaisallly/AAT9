@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Devices from './pages/Devices';
 import Books from './pages/Books';
 import Users from './pages/Users';
+import Reports from './pages/Reports';
 import Brands from './pages/Brands';
 
 function ProtectedRoute({ children, adminOnly = false }) {
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route index element={<Dashboard />} />
         <Route path="devices" element={<Devices />} />
         <Route path="books" element={<Books />} />
+        <Route path="reports" element={<Reports />} />
         <Route path="brands" element={<Brands />} />
         <Route path="users" element={<AdminOnly><Users /></AdminOnly>} />
       </Route>

@@ -46,7 +46,7 @@ def list_books(
 def create_book(
     book_data: OfficialBookCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
+    current_user: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
 ):
     if db.query(OfficialBook).filter(OfficialBook.book_number == book_data.book_number).first():
         raise HTTPException(status_code=400, detail="رقم الكتاب موجود مسبقاً")
@@ -96,7 +96,7 @@ def update_book(
     book_id: int,
     book_data: OfficialBookUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER, UserRole.OPERATOR)),
 ):
     book = db.query(OfficialBook).filter(OfficialBook.id == book_id).first()
     if not book:
@@ -128,7 +128,7 @@ def update_book(
 def delete_book(
     book_id: int,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)),
 ):
     book = db.query(OfficialBook).filter(OfficialBook.id == book_id).first()
     if not book:

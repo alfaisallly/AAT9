@@ -23,7 +23,7 @@ def list_brands(
 def create_brand(
     brand_data: BrandCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)),
 ):
     if db.query(Brand).filter(Brand.name == brand_data.name).first():
         raise HTTPException(status_code=400, detail="الشركة موجودة مسبقاً")
@@ -52,7 +52,7 @@ def list_models(
 def create_model(
     model_data: DeviceModelCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)),
 ):
     brand = db.query(Brand).filter(Brand.id == model_data.brand_id).first()
     if not brand:

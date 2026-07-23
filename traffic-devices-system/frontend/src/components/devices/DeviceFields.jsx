@@ -1,9 +1,8 @@
 import { labels, statusBadgeClass } from '../../api';
 
 const STATUS_OPTIONS = [
-  { key: 'working', icon: '✅', desc: 'الجهاز يعمل بشكل طبيعي' },
-  { key: 'consumed_non_disabled', icon: '⚠️', desc: 'مستهلك لكن غير معطل' },
-  { key: 'consumed_disabled', icon: '❌', desc: 'مستهلك ومعطل' },
+  { key: 'working', icon: '✅', desc: 'يصلح للعمل' },
+  { key: 'consumed', icon: '❌', desc: 'مستهلك — لا يصلح للعمل' },
 ];
 
 const TYPE_OPTIONS = [
@@ -19,6 +18,7 @@ export const DEVICE_FORM_SECTIONS = [
   { id: 'status', title: 'الحالة والوصف', icon: '⚙️' },
   { id: 'dates', title: 'التواريخ', icon: '📅' },
   { id: 'notes', title: 'ملاحظات إضافية', icon: '📝' },
+  { id: 'documents', title: 'الأوليات الورقية', icon: '📄' },
 ];
 
 export function StatusSelector({ value, onChange }) {

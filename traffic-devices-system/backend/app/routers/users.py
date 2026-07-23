@@ -14,7 +14,7 @@ router = APIRouter(prefix="/users", tags=["المستخدمون"])
 @router.get("/", response_model=List[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN, UserRole.MANAGER)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN, UserRole.MANAGER)),
 ):
     return db.query(User).order_by(User.id).all()
 
@@ -23,7 +23,7 @@ def list_users(
 def create_user(
     user_data: UserCreate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
 ):
     if db.query(User).filter(User.username == user_data.username).first():
         raise HTTPException(status_code=400, detail="اسم المستخدم موجود مسبقاً")
@@ -50,7 +50,7 @@ def update_user(
     user_id: int,
     user_data: UserUpdate,
     db: Session = Depends(get_db),
-    _: User = Depends(require_roles(UserRole.ADMIN)),
+    _: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
 ):
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -72,7 +72,7 @@ def update_user(
 def delete_user(
     user_id: int,
     db: Session = Depends(get_db),
-    current_user: User = Depends(require_roles(UserRole.ADMIN)),
+    current_user: User = Depends(require_roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)),
 ):
     if user_id == current_user.id:
         raise HTTPException(status_code=400, detail="لا يمكن حذف حسابك الحالي")

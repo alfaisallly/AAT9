@@ -18,9 +18,17 @@ from app.database import Base
 
 
 class UserRole(str, enum.Enum):
+    SUPER_ADMIN = "super_admin"
     ADMIN = "admin"
     MANAGER = "manager"
     OPERATOR = "operator"
+
+
+class DirectorateType(str, enum.Enum):
+    CENTRAL = "central"
+    BAGHDAD_KARKH = "baghdad_karkh"
+    BAGHDAD_RUSAFA = "baghdad_rusafa"
+    PROVINCE = "province"
 
 
 class DeviceType(str, enum.Enum):
@@ -31,8 +39,16 @@ class DeviceType(str, enum.Enum):
 
 class DeviceStatus(str, enum.Enum):
     WORKING = "working"
-    CONSUMED_NON_DISABLED = "consumed_non_disabled"
-    CONSUMED_DISABLED = "consumed_disabled"
+    CONSUMED = "consumed"
+
+
+class DocumentType(str, enum.Enum):
+    ACQUISITION = "acquisition"
+    RECEIPT = "receipt"
+    DELIVERY = "delivery"
+    MAINTENANCE = "maintenance"
+    TRANSFER = "transfer"
+    DISPOSAL = "disposal"
 
 
 class MovementType(str, enum.Enum):
@@ -47,6 +63,35 @@ class BookType(str, enum.Enum):
     DELIVERY = "delivery"
 
 
+class Province(Base):
+    __tablename__ = "provinces"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name_ar = Column(String(100), unique=True, nullable=False)
+    code = Column(String(10), unique=True, nullable=False)
+    is_baghdad = Column(Boolean, default=False)
+
+    directorates = relationship("Directorate", back_populates="province")
+    users = relationship("User", back_populates="province")
+
+
+class Directorate(Base):
+    __tablename__ = "directorates"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name_ar = Column(String(200), unique=True, nullable=False)
+    code = Column(String(20), unique=True, nullable=False)
+    directorate_type = Column(Enum(DirectorateType), nullable=False)
+    province_id = Column(Integer, ForeignKey("provinces.id"), nullable=True)
+    is_active = Column(Boolean, default=True)
+
+    province = relationship("Province", back_populates="directorates")
+    users = relationship("User", back_populates="directorate")
+    devices = relationship("Device", back_populates="directorate")
+    official_books = relationship("OfficialBook", back_populates="directorate")
+    movements = relationship("InventoryMovement", back_populates="directorate")
+
+
 class User(Base):
     __tablename__ = "users"
 
@@ -57,23 +102,12 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     role = Column(Enum(UserRole), default=UserRole.OPERATOR, nullable=False)
     province_id = Column(Integer, ForeignKey("provinces.id"), nullable=True)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     province = relationship("Province", back_populates="users")
-
-
-class Province(Base):
-    __tablename__ = "provinces"
-
-    id = Column(Integer, primary_key=True, index=True)
-    name_ar = Column(String(100), unique=True, nullable=False)
-    code = Column(String(10), unique=True, nullable=False)
-    is_baghdad = Column(Boolean, default=False)
-
-    users = relationship("User", back_populates="province")
-    devices = relationship("Device", back_populates="province")
-    official_books = relationship("OfficialBook", back_populates="province")
+    directorate = relationship("Directorate", back_populates="users")
 
 
 class Brand(Base):
@@ -105,11 +139,14 @@ class Device(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     serial_number = Column(String(100), unique=True, nullable=False, index=True)
+    manufacturer_serial = Column(String(100), nullable=True)
     asset_number = Column(String(100), unique=True, nullable=True)
     model_id = Column(Integer, ForeignKey("device_models.id"), nullable=False)
     province_id = Column(Integer, ForeignKey("provinces.id"), nullable=False)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
     status = Column(Enum(DeviceStatus), default=DeviceStatus.WORKING, nullable=False)
     device_type = Column(Enum(DeviceType), nullable=False)
+    workplace = Column(String(200), nullable=True)
     location = Column(String(200), nullable=True)
     department = Column(String(150), nullable=True)
     assigned_to = Column(String(150), nullable=True)
@@ -123,10 +160,31 @@ class Device(Base):
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     model = relationship("DeviceModel", back_populates="devices")
-    province = relationship("Province", back_populates="devices")
+    province = relationship("Province")
+    directorate = relationship("Directorate", back_populates="devices")
     created_by = relationship("User")
     book_items = relationship("BookDeviceItem", back_populates="device")
     movements = relationship("InventoryMovement", back_populates="device")
+    documents = relationship("DeviceDocument", back_populates="device", cascade="all, delete-orphan")
+
+
+class DeviceDocument(Base):
+    __tablename__ = "device_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("devices.id"), nullable=False)
+    document_type = Column(Enum(DocumentType), nullable=False)
+    document_number = Column(String(100), nullable=False)
+    document_date = Column(Date, nullable=False)
+    subject = Column(String(300), nullable=True)
+    from_entity = Column(String(200), nullable=True)
+    to_entity = Column(String(200), nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
+
+    device = relationship("Device", back_populates="documents")
+    created_by = relationship("User")
 
 
 class InventoryMovement(Base):
@@ -137,17 +195,19 @@ class InventoryMovement(Base):
     movement_type = Column(Enum(MovementType), nullable=False)
     movement_date = Column(Date, nullable=False)
     province_id = Column(Integer, ForeignKey("provinces.id"), nullable=False)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
     from_entity = Column(String(200), nullable=True)
     to_entity = Column(String(200), nullable=True)
     reference_number = Column(String(100), nullable=True)
-    previous_status = Column(Enum(DeviceStatus), nullable=True)
-    new_status = Column(Enum(DeviceStatus), nullable=True)
+    previous_status = Column(String(50), nullable=True)
+    new_status = Column(String(50), nullable=True)
     notes = Column(Text, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
     device = relationship("Device", back_populates="movements")
     province = relationship("Province")
+    directorate = relationship("Directorate", back_populates="movements")
     created_by = relationship("User")
 
 
@@ -159,6 +219,7 @@ class OfficialBook(Base):
     book_type = Column(Enum(BookType), nullable=False)
     book_date = Column(Date, nullable=False)
     province_id = Column(Integer, ForeignKey("provinces.id"), nullable=False)
+    directorate_id = Column(Integer, ForeignKey("directorates.id"), nullable=True)
     subject = Column(String(300), nullable=False)
     from_entity = Column(String(200), nullable=False)
     to_entity = Column(String(200), nullable=False)
@@ -166,7 +227,8 @@ class OfficialBook(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=True)
 
-    province = relationship("Province", back_populates="official_books")
+    province = relationship("Province")
+    directorate = relationship("Directorate", back_populates="official_books")
     created_by = relationship("User")
     device_items = relationship("BookDeviceItem", back_populates="book", cascade="all, delete-orphan")
 

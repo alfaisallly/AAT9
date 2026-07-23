@@ -12,11 +12,12 @@ const PAGE_TABS = [
 ];
 
 export default function Devices() {
-  const { isManager } = useAuth();
+  const { isManager, activeDirectorateId, user } = useAuth();
   const [activeTab, setActiveTab] = useState('list');
   const [viewMode, setViewMode] = useState('table');
   const [devices, setDevices] = useState([]);
   const [provinces, setProvinces] = useState([]);
+  const [directorates, setDirectorates] = useState([]);
   const [models, setModels] = useState([]);
   const [filters, setFilters] = useState({ search: '', province_id: '', status: '', device_type: '' });
   const [editing, setEditing] = useState(null);
@@ -24,22 +25,23 @@ export default function Devices() {
   const [error, setError] = useState('');
   const [selectedDevice, setSelectedDevice] = useState(null);
 
-  const loadData = () => api.getDevices(filters).then(setDevices);
+  const loadData = () =>
+    api.getDevices({ ...filters, directorate_id: activeDirectorateId || undefined }).then(setDevices);
 
   useEffect(() => {
     api.getProvinces().then(setProvinces);
     api.getModels().then(setModels);
+    api.getDirectorates().then(setDirectorates);
   }, []);
 
   useEffect(() => {
     loadData();
-  }, [filters]);
+  }, [filters, activeDirectorateId]);
 
   const stats = useMemo(() => ({
     total: devices.length,
     working: devices.filter((d) => d.status === 'working').length,
-    consumed_ok: devices.filter((d) => d.status === 'consumed_non_disabled').length,
-    consumed_bad: devices.filter((d) => d.status === 'consumed_disabled').length,
+    consumed: devices.filter((d) => d.status !== 'working').length,
   }), [devices]);
 
   const resetForm = () => {
@@ -50,6 +52,10 @@ export default function Devices() {
 
   const openCreate = () => {
     resetForm();
+    setForm({
+      ...emptyDeviceForm,
+      directorate_id: activeDirectorateId || user?.directorate_id || '',
+    });
     setActiveTab('add');
   };
 
@@ -126,9 +132,8 @@ export default function Devices() {
         <>
           <div className="stats-grid device-stats">
             <div className="stat-card accent"><h3>إجمالي الأجهزة</h3><div className="value">{stats.total}</div></div>
-            <div className="stat-card success"><h3>يعمل</h3><div className="value">{stats.working}</div></div>
-            <div className="stat-card warning"><h3>مستهلك غير معطل</h3><div className="value">{stats.consumed_ok}</div></div>
-            <div className="stat-card danger"><h3>مستهلك معطل</h3><div className="value">{stats.consumed_bad}</div></div>
+            <div className="stat-card success"><h3>يصلح للعمل</h3><div className="value">{stats.working}</div></div>
+            <div className="stat-card danger"><h3>مستهلك</h3><div className="value">{stats.consumed}</div></div>
           </div>
 
           <div className="list-toolbar">
@@ -226,6 +231,7 @@ export default function Devices() {
             error={error}
             provinces={provinces}
             models={models}
+            directorates={directorates}
           />
         </div>
       )}

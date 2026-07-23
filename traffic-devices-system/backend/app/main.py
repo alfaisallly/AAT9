@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, SessionLocal, engine
 from app.migrate import migrate_database
-from app.routers import auth, books, brands, dashboard, devices, export, inventory, provinces, users
+from app.routers import auth, books, brands, dashboard, devices, directorates, export, inventory, provinces, reports, users
 from app.seed import seed_database
 
 Base.metadata.create_all(bind=engine)
@@ -31,11 +31,13 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(provinces.router, prefix="/api")
+app.include_router(directorates.router, prefix="/api")
 app.include_router(brands.router, prefix="/api")
 app.include_router(devices.router, prefix="/api")
 app.include_router(books.router, prefix="/api")
 app.include_router(dashboard.router, prefix="/api")
 app.include_router(export.router, prefix="/api")
+app.include_router(reports.router, prefix="/api")
 app.include_router(inventory.router, prefix="/api")
 
 
