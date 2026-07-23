@@ -293,6 +293,45 @@ class DashboardStats(BaseModel):
     readiness_ratio: float
 
 
+class DeviceTypeBreakdown(BaseModel):
+    total: int
+    working: int
+    consumed: int
+
+
+class ProvinceDeviceRow(BaseModel):
+    id: int
+    serial_number: str
+    manufacturer_serial: Optional[str] = None
+    device_type: str
+    status: str
+    brand_name: str
+    model_name: str
+    directorate_name: Optional[str] = None
+    workplace: Optional[str] = None
+
+
+class ProvinceDashboardStats(BaseModel):
+    province_id: int
+    province_name: str
+    province_code: str
+    total: int
+    working: int
+    consumed: int
+    readiness_ratio: float
+    by_type: dict[str, DeviceTypeBreakdown]
+    devices: List[ProvinceDeviceRow]
+
+
+class ProvincesOverview(BaseModel):
+    scope: str
+    national_total: int
+    national_working: int
+    national_consumed: int
+    national_readiness: float
+    provinces: List[ProvinceDashboardStats]
+
+
 class ReportSummary(BaseModel):
     title: str
     scope: str

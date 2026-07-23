@@ -43,6 +43,15 @@ def migrate_database():
                     if col_name not in existing:
                         conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col_name} {col_type}"))
 
+        if "search_logs" in tables:
+            try:
+                conn.execute(text(
+                    "UPDATE search_logs SET search_type = 'manufacturer_serial' "
+                    "WHERE search_type = 'asset_number'"
+                ))
+            except Exception:
+                pass
+
         conn.commit()
 
     _migrate_directorate_ids()

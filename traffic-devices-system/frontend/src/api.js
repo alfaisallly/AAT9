@@ -67,6 +67,9 @@ export const api = {
   getStats: (directorateId) =>
     request(`/dashboard/stats${buildQuery({ directorate_id: directorateId })}`),
 
+  getProvincesOverview: (directorateId) =>
+    request(`/dashboard/provinces-overview${buildQuery({ directorate_id: directorateId })}`),
+
   getDirectorates: () => request('/directorates/'),
   getProvinces: () => request('/provinces/'),
 

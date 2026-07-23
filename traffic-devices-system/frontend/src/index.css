@@ -1398,6 +1398,204 @@ tbody tr:hover td {
   margin-bottom: 0.45rem;
 }
 
+/* Province dashboard */
+.provinces-overview-header {
+  margin: 1.5rem 0 1rem;
+}
+
+.provinces-overview-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 0.35rem;
+}
+
+.provinces-overview-header p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.province-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.85rem;
+  overflow: hidden;
+  box-shadow: var(--shadow-xs);
+}
+
+.province-panel.open {
+  border-color: var(--primary-400);
+  box-shadow: var(--shadow-sm);
+}
+
+.province-panel-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: var(--bg-subtle);
+  border: none;
+  cursor: pointer;
+  text-align: right;
+  transition: background var(--transition);
+}
+
+.province-panel-header:hover {
+  background: #eef2f7;
+}
+
+.province-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.province-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.province-code {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+}
+
+.province-panel-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.province-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 52px;
+}
+
+.province-stat strong {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.province-stat small {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.province-stat.success strong { color: var(--success); }
+.province-stat.danger strong { color: var(--danger); }
+.province-stat.accent strong { color: #8a6914; }
+
+.province-toggle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-right: 0.5rem;
+}
+
+.province-panel-body {
+  padding: 1.15rem 1.25rem 1.25rem;
+  border-top: 1px solid var(--border);
+}
+
+.province-type-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1.15rem;
+}
+
+.province-type-card {
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+}
+
+.province-type-card h4 {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--primary-700);
+  margin-bottom: 0.55rem;
+}
+
+.province-type-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.province-type-stats div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.province-type-stats span {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.province-type-stats strong {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+
+.summary-type-table td.text-success,
+.summary-type-table td.text-danger {
+  font-weight: 700;
+}
+
+.province-devices-table {
+  margin-top: 0.25rem;
+}
+
+.empty-provinces-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.empty-province-chip {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .province-panel-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .province-panel-summary {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
 /* ─── Modal ─── */
 .modal-overlay {
   position: fixed;

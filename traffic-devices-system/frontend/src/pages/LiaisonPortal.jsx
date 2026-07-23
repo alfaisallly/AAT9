@@ -103,7 +103,7 @@ export default function LiaisonPortal() {
             <table>
               <thead>
                 <tr>
-                  <th>الرقم الأميني</th><th>التسلسلي</th><th>النوع</th><th>مكان العمل</th><th>الحالة</th><th></th>
+                  <th>الرقم المصنعي</th><th>التسلسلي</th><th>النوع</th><th>مكان العمل</th><th>الحالة</th><th></th>
                 </tr>
               </thead>
               <tbody>
@@ -111,7 +111,7 @@ export default function LiaisonPortal() {
                   <tr><td colSpan="6" className="empty-state">لا توجد أجهزة — ابدأ بإضافة جهاز جديد</td></tr>
                 ) : devices.map((d) => (
                   <tr key={d.id}>
-                    <td><strong>{d.asset_number || '—'}</strong></td>
+                    <td><strong>{d.manufacturer_serial || '—'}</strong></td>
                     <td>{d.serial_number}</td>
                     <td>{labels.deviceTypes[d.device_type]}</td>
                     <td>{d.workplace || '—'}</td>

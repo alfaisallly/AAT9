@@ -4,20 +4,21 @@ import { useAuth } from '../context/AuthContext';
 import PageHeader from '../components/ui/PageHeader';
 
 const SEARCH_TYPES = [
-  { key: 'asset_number', label: 'الرقم الأميني', desc: 'بحث مباشر برقم الأصل' },
+  { key: 'manufacturer_serial', label: 'الرقم المصنعي', desc: 'تسلسل التصنيع للجهاز' },
   { key: 'directorate', label: 'المديرية / الدائرة', desc: 'عرض أجهزة مديرية محددة' },
-  { key: 'general', label: 'بحث عام', desc: 'تسلسلي، موقع، مصنع...' },
+  { key: 'general', label: 'بحث عام', desc: 'تسلسلي داخلي، موقع، مكان عمل...' },
 ];
 
 const searchTypeLabels = {
-  asset_number: 'رقم أميني',
+  manufacturer_serial: 'رقم مصنعي',
+  asset_number: 'رقم أميني (قديم)',
   directorate: 'مديرية',
   general: 'عام',
 };
 
 export default function Search() {
   const { activeDirectorateId } = useAuth();
-  const [searchType, setSearchType] = useState('asset_number');
+  const [searchType, setSearchType] = useState('manufacturer_serial');
   const [query, setQuery] = useState('');
   const [directorateId, setDirectorateId] = useState('');
   const [results, setResults] = useState(null);
@@ -65,7 +66,7 @@ export default function Search() {
     <div className="search-page">
       <PageHeader
         title="البحث عن الأجهزة"
-        subtitle="بحث بالرقم الأميني أو المديرية مع توثيق سجل عمليات البحث"
+        subtitle="بحث بالرقم المصنعي (تسلسل التصنيع) أو المديرية مع توثيق سجل عمليات البحث"
       />
 
       <div className="search-type-cards">
@@ -100,13 +101,13 @@ export default function Search() {
           ) : (
             <div className="form-group">
               <label htmlFor="search-query">
-                {searchType === 'asset_number' ? 'الرقم الأميني' : 'كلمة البحث'}
+                {searchType === 'manufacturer_serial' ? 'الرقم المصنعي (تسلسل التصنيع)' : 'كلمة البحث'}
               </label>
               <input
                 id="search-query"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder={searchType === 'asset_number' ? 'أدخل الرقم الأميني...' : 'رقم تسلسلي، مصنع، موقع...'}
+                placeholder={searchType === 'manufacturer_serial' ? 'أدخل الرقم المصنعي...' : 'رقم تسلسلي، موقع، مكان عمل...'}
                 required
               />
             </div>
@@ -126,7 +127,7 @@ export default function Search() {
             <table>
               <thead>
                 <tr>
-                  <th>الرقم الأميني</th>
+                  <th>الرقم المصنعي</th>
                   <th>التسلسلي</th>
                   <th>النوع</th>
                   <th>الموديل</th>
@@ -140,7 +141,7 @@ export default function Search() {
                   <tr><td colSpan="7" className="empty-state">لا توجد نتائج مطابقة</td></tr>
                 ) : results.devices.map((d) => (
                   <tr key={d.id}>
-                    <td><strong>{d.asset_number || '—'}</strong></td>
+                    <td><strong>{d.manufacturer_serial || '—'}</strong></td>
                     <td>{d.serial_number}</td>
                     <td>{labels.deviceTypes[d.device_type]}</td>
                     <td>{d.model?.brand?.name_ar} — {d.model?.name}</td>

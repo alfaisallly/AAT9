@@ -16,6 +16,13 @@ from app.services.scope import apply_directorate_scope, ensure_directorate_acces
 
 router = APIRouter(prefix="/search", tags=["البحث"])
 
+SEARCH_TYPE_LABELS = {
+    SearchType.MANUFACTURER_SERIAL: "رقم مصنعي",
+    SearchType.DIRECTORATE: "مديرية",
+    SearchType.GENERAL: "عام",
+    SearchType.ASSET_NUMBER: "رقم أميني (قديم)",
+}
+
 
 def _log_search(db: Session, user: User, search_type: SearchType, query_value: str,
                 directorate_id: Optional[int], count: int) -> SearchLog:
@@ -52,9 +59,9 @@ def search_devices(
     query = _device_query(db, user, req.directorate_id)
     label = req.query
 
-    if req.search_type == SearchType.ASSET_NUMBER:
-        query = query.filter(Device.asset_number.ilike(f"%{req.query}%"))
-        label = f"رقم أميني: {req.query}"
+    if req.search_type in (SearchType.MANUFACTURER_SERIAL, SearchType.ASSET_NUMBER):
+        query = query.filter(Device.manufacturer_serial.ilike(f"%{req.query}%"))
+        label = f"رقم مصنعي: {req.query}"
     elif req.search_type == SearchType.DIRECTORATE:
         if not req.directorate_id:
             raise HTTPException(status_code=400, detail="يجب تحديد المديرية")
@@ -73,20 +80,37 @@ def search_devices(
         )
 
     results = query.order_by(Device.id.desc()).all()
-    _log_search(db, user, req.search_type, label, req.directorate_id, len(results))
-    return SearchResult(devices=results, total=len(results), search_type=req.search_type, query=label)
+    search_type = SearchType.MANUFACTURER_SERIAL if req.search_type == SearchType.ASSET_NUMBER else req.search_type
+    _log_search(db, user, search_type, label, req.directorate_id, len(results))
+    return SearchResult(devices=results, total=len(results), search_type=search_type, query=label)
+
+
+@router.get("/by-manufacturer-serial/{manufacturer_serial}", response_model=SearchResult)
+def search_by_manufacturer_serial(
+    manufacturer_serial: str,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    query = _device_query(db, user).filter(Device.manufacturer_serial.ilike(f"%{manufacturer_serial}%"))
+    results = query.all()
+    label = f"رقم مصنعي: {manufacturer_serial}"
+    _log_search(db, user, SearchType.MANUFACTURER_SERIAL, label, None, len(results))
+    return SearchResult(
+        devices=results,
+        total=len(results),
+        search_type=SearchType.MANUFACTURER_SERIAL,
+        query=label,
+    )
 
 
 @router.get("/by-asset/{asset_number}", response_model=SearchResult)
-def search_by_asset_number(
+def search_by_asset_number_legacy(
     asset_number: str,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ):
-    query = _device_query(db, user).filter(Device.asset_number.ilike(f"%{asset_number}%"))
-    results = query.all()
-    _log_search(db, user, SearchType.ASSET_NUMBER, asset_number, None, len(results))
-    return SearchResult(devices=results, total=len(results), search_type=SearchType.ASSET_NUMBER, query=asset_number)
+    """Legacy route — redirects logic to manufacturer serial search."""
+    return search_by_manufacturer_serial(asset_number, db, user)
 
 
 @router.get("/by-directorate/{directorate_id}", response_model=SearchResult)
@@ -136,9 +160,10 @@ def export_search_logs(db: Session = Depends(get_db), user: User = Depends(get_c
     ws.sheet_view.rightToLeft = True
     ws.append(["م", "نوع البحث", "الاستعلام", "المديرية", "النتائج", "التاريخ"])
     for i, log in enumerate(logs, 1):
+        type_label = SEARCH_TYPE_LABELS.get(log.search_type, log.search_type.value)
         ws.append([
             i,
-            log.search_type.value,
+            type_label,
             log.query_value,
             log.directorate.name_ar if log.directorate else "",
             log.results_count,

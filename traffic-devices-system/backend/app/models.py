@@ -26,9 +26,11 @@ class UserRole(str, enum.Enum):
 
 
 class SearchType(str, enum.Enum):
-    ASSET_NUMBER = "asset_number"
+    MANUFACTURER_SERIAL = "manufacturer_serial"
     DIRECTORATE = "directorate"
     GENERAL = "general"
+    # legacy alias kept for reading old search logs
+    ASSET_NUMBER = "asset_number"
 
 
 class AuditAction(str, enum.Enum):
