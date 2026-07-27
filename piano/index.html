@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>بيانو احترافي | Professional Piano</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="ambient-glow"></div>
+
+  <header class="header">
+    <div class="logo">
+      <span class="logo-icon">♪</span>
+      <h1>Grand Piano</h1>
+      <span class="logo-sub">بيانو احترافي</span>
+    </div>
+    <div class="header-controls">
+      <div class="control-group">
+        <label for="volume">الصوت</label>
+        <input type="range" id="volume" min="0" max="100" value="75">
+      </div>
+      <div class="control-group">
+        <label for="reverb">الصدى</label>
+        <input type="range" id="reverb" min="0" max="100" value="35">
+      </div>
+      <button id="sustain-btn" class="btn btn-sustain" aria-pressed="false">
+        <span class="btn-icon">⏸</span>
+        Sustain
+      </button>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="display-panel">
+      <div class="now-playing">
+        <span class="label">النوتة الحالية</span>
+        <span id="current-note" class="note-display">—</span>
+      </div>
+      <div class="song-selector">
+        <span class="label">اختر مقطوعة</span>
+        <div class="song-buttons">
+          <button class="btn btn-song active" data-song="fur-elise">Für Elise</button>
+          <button class="btn btn-song" data-song="happy-birthday">Happy Birthday</button>
+          <button class="btn btn-song" data-song="twinkle">Twinkle Star</button>
+          <button class="btn btn-song" data-song="canon">Canon in D</button>
+        </div>
+      </div>
+      <div class="playback-controls">
+        <button id="play-btn" class="btn btn-play">
+          <span class="play-icon">▶</span>
+          عزف المقطوعة
+        </button>
+        <button id="stop-btn" class="btn btn-stop" disabled>
+          <span class="stop-icon">■</span>
+          إيقاف
+        </button>
+      </div>
+      <div id="progress-bar" class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+    </section>
+
+    <section class="piano-section">
+      <div class="octave-labels">
+        <span>C3</span>
+        <span>C4</span>
+        <span>C5</span>
+      </div>
+      <div id="piano" class="piano" role="application" aria-label="لوحة مفاتيح البيانو"></div>
+    </section>
+
+    <section class="keyboard-hint">
+      <p>استخدم لوحة المفاتيح للعزف: <kbd>A</kbd>–<kbd>L</kbd> للنوتات البيضاء، <kbd>W</kbd> <kbd>E</kbd> <kbd>T</kbd> <kbd>Y</kbd> <kbd>U</kbd> <kbd>O</kbd> للسوداء</p>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>اضغط على أي مفتاح أو استخدم لوحة المفاتيح · Web Audio API</p>
+  </footer>
+
+  <script src="piano.js"></script>
+</body>
+</html>
