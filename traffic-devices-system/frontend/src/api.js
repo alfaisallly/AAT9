@@ -1,0 +1,222 @@
+const API_BASE = '/api';
+
+function getToken() {
+  return localStorage.getItem('token');
+}
+
+async function request(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(options.headers || {}),
+  };
+  const token = getToken();
+  if (token) headers.Authorization = `Bearer ${token}`;
+
+  const response = await fetch(`${API_BASE}${path}`, { ...options, headers });
+
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ detail: 'حدث خطأ' }));
+    throw new Error(error.detail || 'حدث خطأ');
+  }
+
+  if (response.status === 204) return null;
+  return response.json();
+}
+
+async function downloadFile(path, filename) {
+  const token = getToken();
+  const response = await fetch(`${API_BASE}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+  if (response.status === 401) {
+    localStorage.removeItem('token');
+    window.location.href = '/login';
+    throw new Error('Unauthorized');
+  }
+  if (!response.ok) throw new Error('حدث خطأ');
+  const blob = await response.blob();
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
+function buildQuery(params) {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => v !== undefined && v !== null && v !== '' && query.append(k, v));
+  const qs = query.toString();
+  return qs ? `?${qs}` : '';
+}
+
+export const api = {
+  login: (username, password) =>
+    request('/auth/login-json', { method: 'POST', body: JSON.stringify({ username, password }) }),
+
+  getMe: () => request('/auth/me'),
+
+  getStats: (directorateId) =>
+    request(`/dashboard/stats${buildQuery({ directorate_id: directorateId })}`),
+
+  getProvincesOverview: (directorateId) =>
+    request(`/dashboard/provinces-overview${buildQuery({ directorate_id: directorateId })}`),
+
+  getDirectorates: () => request('/directorates/'),
+  getProvinces: () => request('/provinces/'),
+
+  getReportSummary: (directorateId) =>
+    request(`/reports/summary${buildQuery({ directorate_id: directorateId })}`),
+
+  getReportCentral: () => request('/reports/central'),
+  getReportDirectorate: (id) => request(`/reports/directorate/${id}`),
+
+  getUsers: () => request('/users/'),
+  createUser: (data) => request('/users/', { method: 'POST', body: JSON.stringify(data) }),
+  updateUser: (id, data) => request(`/users/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteUser: (id) => request(`/users/${id}`, { method: 'DELETE' }),
+
+  getBrands: () => request('/brands/'),
+  createBrand: (data) => request('/brands/', { method: 'POST', body: JSON.stringify(data) }),
+  getModels: () => request('/brands/models'),
+  createModel: (data) => request('/brands/models', { method: 'POST', body: JSON.stringify(data) }),
+
+  getDevices: (params = {}) => request(`/devices/${buildQuery(params)}`),
+  createDevice: (data) => request('/devices/', { method: 'POST', body: JSON.stringify(data) }),
+  updateDevice: (id, data) => request(`/devices/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteDevice: (id) => request(`/devices/${id}`, { method: 'DELETE' }),
+  addDeviceDocument: (deviceId, data) =>
+    request(`/devices/${deviceId}/documents`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getBooks: (params = {}) => request(`/books/${buildQuery(params)}`),
+  createBook: (data) => request('/books/', { method: 'POST', body: JSON.stringify(data) }),
+  updateBook: (id, data) => request(`/books/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  deleteBook: (id) => request(`/books/${id}`, { method: 'DELETE' }),
+
+  getInventory: (params = {}) => request(`/inventory/${buildQuery(params)}`),
+  createInventoryMovement: (data) =>
+    request('/inventory/', { method: 'POST', body: JSON.stringify(data) }),
+
+  exportDevicesExcel: (params = {}) =>
+    downloadFile(`/export/devices/excel${buildQuery(params)}`, 'devices_report.xlsx'),
+  exportDevicesPdf: (params = {}) =>
+    downloadFile(`/export/devices/pdf${buildQuery(params)}`, 'devices_report.pdf'),
+  exportBooksExcel: (params = {}) =>
+    downloadFile(`/export/books/excel${buildQuery(params)}`, 'official_books.xlsx'),
+  exportBookPdf: (bookId) =>
+    downloadFile(`/export/books/${bookId}/pdf`, `book_${bookId}.pdf`),
+  exportDashboardPdf: (directorateId) =>
+    downloadFile(`/export/dashboard/pdf${buildQuery({ directorate_id: directorateId })}`, 'dashboard_report.pdf'),
+
+  downloadDevicesTemplate: (province) =>
+    downloadFile(
+      `/export/devices/template${buildQuery({ province })}`,
+      'نموذج_جمع_بيانات_الأجهزة_مديرية_المرور.xlsx',
+    ),
+
+  importDevicesExcel: async (file) => {
+    const token = getToken();
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch(`${API_BASE}/export/devices/import`, {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (response.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/login';
+      throw new Error('Unauthorized');
+    }
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: 'فشل الاستيراد' }));
+      throw new Error(typeof err.detail === 'string' ? err.detail : 'فشل الاستيراد');
+    }
+    return response.json();
+  },
+
+  searchDevices: (data) =>
+    request('/search/', { method: 'POST', body: JSON.stringify(data) }),
+
+  getSearchLogs: () => request('/search/logs'),
+  exportSearchLogs: () => downloadFile('/search/logs/export', 'search_log.xlsx'),
+  clearSearchLogs: (saveBefore = true) =>
+    request(`/search/logs?save_before=${saveBefore}`, { method: 'DELETE' }),
+
+  getAuditLogs: (directorateId) =>
+    request(`/audit${buildQuery({ directorate_id: directorateId })}`),
+
+  exportAuditLogs: (directorateId) => {
+    const q = buildQuery({ directorate_id: directorateId });
+    return fetch(`/api/audit/export${q}`, {
+      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
+    }).then((r) => r.json()).then((data) => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'audit_log.json';
+      a.click();
+    });
+  },
+
+  uploadOfficialBook: async (file) => {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await fetch('/api/uploads/official-book', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: formData,
+    });
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({ detail: 'فشل الرفع' }));
+      throw new Error(err.detail);
+    }
+    return response.json();
+  },
+};
+
+export const labels = {
+  roles: {
+    super_admin: 'مدير النظام المركزي',
+    admin: 'مدير',
+    manager: 'مدير مديرية',
+    operator: 'مستخدم اعتيادي',
+    liaison: 'مسؤول المديرية',
+  },
+  deviceTypes: {
+    desktop: 'مكتبي',
+    mobile: 'محمول',
+    wheel: 'عجلة',
+  },
+  deviceStatus: {
+    working: 'يصلح للعمل',
+    consumed: 'مستهلك - لا يصلح للعمل',
+  },
+  documentTypes: {
+    acquisition: 'اشتباك / تمليك',
+    receipt: 'استلام',
+    delivery: 'تسليم',
+    maintenance: 'صيانة',
+    transfer: 'نقل',
+    disposal: 'إتلاف',
+  },
+  bookTypes: { receipt: 'استلام', delivery: 'تسليم' },
+  movementTypes: {
+    in: 'إدخال', out: 'إخراج', transfer: 'نقل', status_change: 'تغيير حالة',
+  },
+};
+
+export function statusBadgeClass(status) {
+  if (status === 'working') return 'badge-success';
+  return 'badge-danger';
+}
