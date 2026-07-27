@@ -27,7 +27,9 @@ interface DiagramCanvasProps {
   animation: AnimationSettings;
   testResults: ConnectivityTestResult[];
   selectedNodeId: string | null;
+  selectedEdgeId: string | null;
   onSelectNode: (id: string | null) => void;
+  onSelectEdge: (id: string | null) => void;
 }
 
 export function DiagramCanvas({
@@ -38,12 +40,15 @@ export function DiagramCanvas({
   animation,
   testResults,
   selectedNodeId,
+  selectedEdgeId,
   onSelectNode,
+  onSelectEdge,
 }: DiagramCanvasProps) {
   const testMap = new Map(testResults.map((r) => [r.id, r.status]));
 
   const displayEdges = edges.map((edge) => ({
     ...edge,
+    selected: edge.id === selectedEdgeId,
     data: {
       ...edge.data,
       linkType: edge.data?.linkType ?? 'ethernet',
@@ -104,8 +109,18 @@ export function DiagramCanvas({
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={onConnect}
-        onNodeClick={(_, node) => onSelectNode(node.id)}
-        onPaneClick={() => onSelectNode(null)}
+        onNodeClick={(_, node) => {
+          onSelectEdge(null);
+          onSelectNode(node.id);
+        }}
+        onEdgeClick={(_, edge) => {
+          onSelectNode(null);
+          onSelectEdge(edge.id);
+        }}
+        onPaneClick={() => {
+          onSelectNode(null);
+          onSelectEdge(null);
+        }}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         fitView

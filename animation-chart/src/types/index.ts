@@ -13,6 +13,8 @@ export type NodeStatus = 'online' | 'offline' | 'testing' | 'degraded';
 
 export type LinkType = 'ethernet' | 'fiber' | 'power' | 'management';
 
+export type EnvironmentMode = 'simulation' | 'real';
+
 export interface DCNodeData extends Record<string, unknown> {
   kind: ComponentKind;
   label: string;
@@ -20,6 +22,8 @@ export interface DCNodeData extends Record<string, unknown> {
   model?: string;
   ports?: number;
   status: NodeStatus;
+  healthUrl?: string;
+  realHost?: string;
   metrics?: {
     cpu?: number;
     memory?: number;
@@ -49,6 +53,7 @@ export interface ConnectivityTestResult {
   jitterMs?: number;
   bandwidthMbps?: number;
   message?: string;
+  realProbe?: boolean;
 }
 
 export interface AnimationSettings {
@@ -56,4 +61,52 @@ export interface AnimationSettings {
   speed: number;
   showMetrics: boolean;
   showLabels: boolean;
+}
+
+export interface EnvironmentConfig {
+  mode: EnvironmentMode;
+  name: string;
+  prometheusUrl?: string;
+  snmpCommunity?: string;
+  defaultHealthPort: number;
+  aiApiKey?: string;
+  aiModel: string;
+}
+
+export interface SavedDiagram {
+  id: string;
+  name: string;
+  nameAr: string;
+  nodes: import('@xyflow/react').Node<DCNodeData>[];
+  edges: import('@xyflow/react').Edge<DCEdgeData>[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RealProbeResult {
+  host: string;
+  reachable: boolean;
+  latencyMs?: number;
+  packetLoss?: number;
+  httpStatus?: number;
+  message: string;
+}
+
+export interface AIAnalysisInsight {
+  severity: 'info' | 'warning' | 'critical';
+  title: string;
+  titleAr: string;
+  detail: string;
+  detailAr: string;
+}
+
+export interface AIAnalysisReport {
+  summary: string;
+  summaryAr: string;
+  score: number;
+  insights: AIAnalysisInsight[];
+  recommendations: string[];
+  recommendationsAr: string[];
+  source: 'local' | 'ai';
+  generatedAt: string;
 }

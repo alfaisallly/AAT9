@@ -12,6 +12,8 @@ import {
   Layers,
   LayoutTemplate,
 } from 'lucide-react';
+import { DiagramManager } from './DiagramManager';
+import type { SavedDiagram } from '../types';
 
 const iconMap: Record<ComponentKind, React.ReactNode> = {
   rack: <Layers size={16} />,
@@ -26,16 +28,45 @@ const iconMap: Record<ComponentKind, React.ReactNode> = {
 };
 
 interface ToolbarProps {
+  diagrams: SavedDiagram[];
+  activeDiagramId: string;
   onAddComponent: (kind: ComponentKind, defaults: Partial<DCNodeData>) => void;
   onLoadTemplate: (templateId: string) => void;
+  onSwitchDiagram: (id: string) => void;
+  onCreateDiagram: () => void;
+  onDeleteDiagram: (id: string) => void;
+  onRenameDiagram: (id: string, name: string, nameAr: string) => void;
+  onDuplicateDiagram: (id: string) => void;
   locale: 'ar' | 'en';
 }
 
-export function Toolbar({ onAddComponent, onLoadTemplate, locale }: ToolbarProps) {
+export function Toolbar({
+  diagrams,
+  activeDiagramId,
+  onAddComponent,
+  onLoadTemplate,
+  onSwitchDiagram,
+  onCreateDiagram,
+  onDeleteDiagram,
+  onRenameDiagram,
+  onDuplicateDiagram,
+  locale,
+}: ToolbarProps) {
   const isAr = locale === 'ar';
 
   return (
     <aside className="toolbar">
+      <DiagramManager
+        diagrams={diagrams}
+        activeId={activeDiagramId}
+        locale={locale}
+        onSwitch={onSwitchDiagram}
+        onCreate={onCreateDiagram}
+        onDelete={onDeleteDiagram}
+        onRename={onRenameDiagram}
+        onDuplicate={onDuplicateDiagram}
+      />
+
       <section className="toolbar-section">
         <h3>
           <LayoutTemplate size={16} />
@@ -81,7 +112,11 @@ export function Toolbar({ onAddComponent, onLoadTemplate, locale }: ToolbarProps
       </section>
 
       <section className="toolbar-section toolbar-hint">
-        <p>{isAr ? 'انقر مكوّناً لإضافته. اسحب المقابض لربط الأجهزة.' : 'Click a component to add it. Drag handles to connect devices.'}</p>
+        <p>
+          {isAr
+            ? 'انقر لإضافة · اسحب للربط · Delete للحذف · المخططات تُحفظ تلقائياً'
+            : 'Click to add · drag to connect · Delete to remove · diagrams auto-save'}
+        </p>
       </section>
     </aside>
   );
