@@ -1,0 +1,61 @@
+appId: com.alfaisal.astrolab
+productName: AstroLab
+copyright: Copyright © 2026 Eng. Ahmed alfaisal
+artifactName: AstroLab-${version}-${arch}-Setup.${ext}
+
+npmRebuild: false
+buildDependenciesFromSource: false
+
+directories:
+  output: dist
+  buildResources: electron/resources
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+  - "**/better-sqlite3/**"
+  - "**/serialport/**"
+  - "**/@serialport/**"
+  - "**/bindings/**"
+
+files:
+  - electron/**/*
+  - package.json
+
+extraResources:
+  - from: dist-staging/standalone
+    to: standalone
+    filter:
+      - "**/*"
+  - from: dist-staging/desktop-bridge
+    to: desktop-bridge
+    filter:
+      - "**/*"
+  - from: dist-staging/node
+    to: node
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+        - ia32
+  publisherName: Eng. Ahmed alfaisal
+  requestedExecutionLevel: asInvoker
+  signAndEditExecutable: false
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  allowElevation: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: AstroLab
+  runAfterFinish: true
+  uninstallDisplayName: AstroLab v1.0.0-trial
+  installerLanguages:
+    - English
+    - Arabic

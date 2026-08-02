@@ -1,0 +1,47 @@
+{
+  "name": "astro-platform",
+  "version": "1.0.0-trial",
+  "private": true,
+  "description": "AstroLab ASIAIR-style platform v1.0.0-trial — Eng. Ahmed alfaisal",
+  "author": "Eng. Ahmed alfaisal",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "next dev",
+    "dev:clean": "rm -rf .next && next dev",
+    "dev:trial": "npm run bridge & npm run dev",
+    "bridge": "cd desktop-bridge && npm start",
+    "bridge:install": "cd desktop-bridge && npm install",
+    "install:trial": "npm install && npm run bridge:install",
+    "build": "next build",
+    "prepare:standalone": "node scripts/prepare-standalone.js",
+    "electron:dev": "npm run build && npm run prepare:standalone && electron .",
+    "build:installer": "npm run build && npm run prepare:standalone && electron-builder --win nsis --x64 --ia32",
+    "build:installer:x64": "npm run build && npm run prepare:standalone && electron-builder --win nsis --x64",
+    "build:installer:x86": "npm run build && npm run prepare:standalone && electron-builder --win nsis --ia32",
+    "start": "next start",
+    "lint": "next lint",
+    "postinstall": "node -e \"try{require('electron/package.json')}catch(e){process.exit(0)}\" && electron-builder install-app-deps || exit 0"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.11.1",
+    "lucide-react": "^1.25.0",
+    "next": "14.2.35",
+    "react": "^18",
+    "react-dom": "^18",
+    "uuid": "^14.0.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "@types/uuid": "^10.0.0",
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "eslint": "^8",
+    "eslint-config-next": "14.2.35",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5"
+  }
+}
